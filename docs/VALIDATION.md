@@ -1,6 +1,6 @@
 # Validation de la variante AZERTY
 
-Révision applicative : `3b3a57703e1da9f5524c6b6555a8f25d7d174f1c`.
+Révision applicative : `9247373fa83656c603b54946160b8c6cbcf9e0cf`.
 
 Validation locale du 3 octobre 2026, à partir de la baseline `de164448e147c8926cd1e3ec44482793807d2364`, sans fusion upstream et sans déploiement.
 
@@ -9,8 +9,8 @@ Validation locale du 3 octobre 2026, à partir de la baseline `de164448e147c8926
 - Node **24.21.0**, Yarn **1.22.22**.
 - `yarn lint` : réussi, sans erreur.
 - `yarn build` : compilation, TypeScript et production réussis ; Next **15.5.27**, React **19.3.0**.
-- `PLAYWRIGHT_PRODUCTION=1 yarn test:e2e --project=chromium --project=firefox` : **192 tests réussis**, 96 par navigateur, contre `next start` et le build de production.
-- Chaque projet comprend 57 tests indépendants sur les plans de saisie et le contenu des exercices, et 39 tests navigateur, dont les 13 régressions existantes.
+- `PLAYWRIGHT_PRODUCTION=1 yarn test:e2e --project=chromium --project=firefox` : **202 tests réussis**, 101 par navigateur, contre `next start` et le build de production.
+- Chaque projet comprend 60 tests indépendants sur les plans de saisie et le contenu des exercices, et 41 tests navigateur, dont les 13 régressions existantes.
 - `yarn audit --json` : **0 info, 0 faible, 0 modérée, 0 élevée, 0 critique**, sur le graphe complet de 255 dépendances signalé par Yarn. Aucune vulnérabilité connue volontairement laissée. Ce résultat est daté, pas une garantie permanente.
 - `git diff --check` : propre.
 - Capture complète de l’interface française inspectée visuellement pendant la validation.
@@ -19,7 +19,7 @@ Validation locale du 3 octobre 2026, à partir de la baseline `de164448e147c8926
 
 Les plans français couvrent `é è à ç ù`, les dix chiffres avec Shift, `? . /`, espaces, majuscules, `@ # { [ | \\ ] } € ^ ¤`, ainsi que les accents isolés `~`, accent grave et tréma suivis d’Espace. Les séquences `â ê î ô û ä ë ï ö ü` et leurs majuscules sont vérifiées en NFC et NFD. Des mappings anglais et allemands sont également vérifiés.
 
-La bibliothèque comprend trois exercices : accents (é è à ù ç â ê î ô û ë), caractères courants avec répétitions de @, puis long texte varié. Elle exclut ä/ï/ö/ü, €/% et le point-virgule, tandis que leur support dans le moteur est conservé. Tous les caractères des exercices ont un plan physique français, et le texte long couvre tout l’alphabet. Les tests reproduisent également l’ancien exercice AltGr stocké dans le navigateur (sans identifiant, avec identifiant libre ou ancien identifiant) et vérifient son remplacement par la bibliothèque actuelle. Les autres textes libres restent conservés. La navigation permet le choix direct et le conserve au rechargement ; la saisie libre reste accessible, les réglages et statistiques sont repliés.
+La bibliothèque comprend trois exercices : accents (é è à ù ç â ê î ô û ë), caractères courants avec répétitions de @, puis long texte varié. Elle exclut ä/ï/ö/ü, €/% et le point-virgule, tandis que leur support dans le moteur est conservé. Tous les caractères des exercices ont un plan physique français, et le texte long couvre tout l’alphabet. Les tests reproduisent également l’ancien exercice AltGr stocké dans le navigateur (sans identifiant, avec identifiant libre ou ancien identifiant) et vérifient son remplacement par la bibliothèque actuelle. Les autres textes libres restent conservés. Les banques éditables génèrent des tours de plusieurs dizaines de milliers de caractères, avec mélange et variantes locales. Le premier mot est différent à chaque ouverture et renouvellement, même si le tirage aléatoire se répète. Les tests vérifient les caractères autorisés sur plusieurs tours, plus de 500 @ par tour de caractères courants, le début différent après rechargement, un rendu borné à moins de 850 caractères et la traversée complète d’un grand tour sans erreur, avec reprise automatique et statistiques cumulées. La navigation permet le choix direct et le conserve au rechargement ; la saisie libre reste accessible, les réglages et statistiques sont repliés.
 
 Les tests navigateur vérifient les quatre aides avant tentative, après réussite et après erreur, la touche pressée, l’aide persistante avec correction, l’aide temporaire sans correction, la confirmation 350 ms, la frappe rapide sans perte, la répétition et les statistiques cumulées. Ils vérifient la bibliothèque, le collage libre, le texte contenant `<script>` rendu comme texte, les retours à la ligne, tabulations et espaces insécables français.
 

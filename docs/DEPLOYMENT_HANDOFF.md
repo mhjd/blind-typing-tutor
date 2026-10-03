@@ -7,7 +7,7 @@ Ce document décrit le produit à lancer. Aucune opération VPS, modification Do
 - Dépôt : https://github.com/mhjd/blind-typing-tutor
 - Branche : `feature/french-azerty-trainer`.
 - Baseline examinée : `de164448e147c8926cd1e3ec44482793807d2364`.
-- Révision applicative validée : `3b3a57703e1da9f5524c6b6555a8f25d7d174f1c`. Le commit de documentation qui suit sur cette branche contient ce handoff ; le hash complet de tête à déployer est communiqué dans le compte rendu final.
+- Révision applicative validée : `9247373fa83656c603b54946160b8c6cbcf9e0cf`. Le commit de documentation qui suit sur cette branche contient ce handoff ; le hash complet de tête à déployer est communiqué dans le compte rendu final.
 - Next.js 15.5.27, React 19.3.0. Aucune fusion de code upstream après baseline.
 
 ## Construction et lancement
@@ -35,7 +35,7 @@ Aucune base de données, migration, stockage serveur des utilisateurs, tâche p�
 
 ## Stockage et permissions
 
-Le navigateur conserve le choix parmi les trois exercices, les préférences et le dernier texte libre Custom dans `localStorage`. Les statistiques restent en mémoire. Un changement de domaine/origine ou de navigateur n’emporte pas ces données. Le serveur ne reçoit pas le contenu d’exercice. Les logs HTTP habituels du proxy peuvent contenir des chemins de routes (langue/mode), pas le texte saisi.
+Le navigateur conserve le choix parmi les trois exercices, leur dernier premier mot (pour varier le départ), les préférences et le dernier texte libre Custom dans `localStorage`. Les statistiques restent en mémoire. Les grands tours sont générés et mélangés localement dans le navigateur, puis renouvelés en boucle, sans stockage serveur. Un changement de domaine/origine ou de navigateur n’emporte pas ces données. Le serveur ne reçoit pas le contenu d’exercice. Les logs HTTP habituels du proxy peuvent contenir des chemins de routes (langue/mode), pas le texte saisi.
 
 Pendant l’installation/build, le checkout, `node_modules`, `.next` et les caches du gestionnaire de paquets nécessitent une écriture. En production, il n’y a aucune écriture applicative de données utilisateur. Next peut écrire ses caches sous **`.next/cache`** ; prévoir ce répertoire inscriptible si les fonctionnalités de cache Next sont utilisées. Le code, les assets et les dépendances peuvent rester en lecture seule. Aucun répertoire de stockage utilisateur ni volume de données persistant n’est requis. Les logs sont envoyés à stdout/stderr, sans fichier journal applicatif.
 
