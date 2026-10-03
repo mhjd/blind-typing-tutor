@@ -31,6 +31,8 @@ Cliquez sur le texte à taper pour reprendre la frappe après avoir utilisé un 
 
 Le choix d’exercice, le texte personnalisé et les préférences sont conservés uniquement dans `localStorage`, pour cette origine et ce navigateur. Aucune donnée de frappe, statistique ou texte n’est envoyée au serveur ou à un tiers. Les statistiques sont en mémoire, sans historique serveur. Effacer les données du site efface les préférences et le texte. Si le stockage navigateur est indisponible, l’entraînement reste utilisable mais la persistance ne peut pas être garantie.
 
+Au rechargement, les copies exactes des anciens exercices enregistrées dans le navigateur sont reconnues et remplacées par les exercices actuels. Les autres textes libres restent conservés.
+
 Aucun Analytics, Google Fonts ou autre service de télémétrie. Polices système uniquement. Les scripts Yarn désactivent aussi la télémétrie de l’outil Next.js. L’utilisation normale peut continuer sans réseau une fois les ressources de la page chargées ; recharger ou changer de route nécessite le serveur. Il n’y a pas de service worker ni de garantie d’installation hors ligne.
 
 ## Développement et production locale

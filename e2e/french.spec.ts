@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { characterInputPlan, highlightedKeys, physicalKeyId } from '../src/utils/inputPlan';
 import { frFrLayout } from '../src/config/layouts/fr-fr';
+import { resolveExerciseSelection } from '../src/utils/exerciseSelection';
 import { exercises } from '../src/config/exercises';
 import { getLayout } from '../src/config/layouts';
 
@@ -312,4 +313,26 @@ test('choix direct, persistance et texte libre sans perdre l’exercice', async 
   await expect(page.getByTestId('exercise-selector')).toHaveValue('special');
   await page.getByTestId('exercise-selector').selectOption('paragraph');
   await expect(page.getByTestId('text-display')).toContainText('Bonjour !');
+});
+
+
+for (const savedId of [null, 'free', 'altgr']) test(`migration de l’ancien exercice AltGr ${savedId}`, async ({ page }) => {
+  await page.addInitScript(savedId => {
+    localStorage.setItem('customText', '@ # { [ | \\ ] } € ~ ` ^ ¤');
+    if (savedId) localStorage.setItem('exerciseId', savedId);
+  }, savedId);
+  await page.goto('/');
+  await expect(page.getByTestId('exercise-selector')).toHaveValue('special');
+  await expect(page.getByTestId('text-display')).toHaveText(exercises[1].text);
+  expect(await page.evaluate(() => localStorage.getItem('customText'))).toBeNull();
+  await page.getByTestId('change-exercise').click();
+  await expect(page.getByTestId('custom-text-input')).toHaveValue('');
+});
+
+test('migration ciblée : vrai texte libre conservé et choix récent prioritaire', () => {
+  const text = 'Mon propre texte : @ # € et Noël.';
+  expect(resolveExerciseSelection(null, text)).toMatchObject({ id: 'free', text, customText: text, migratedSnapshot: false });
+  expect(resolveExerciseSelection('free', text)).toMatchObject({ id: 'free', text, customText: text, migratedSnapshot: false });
+  expect(resolveExerciseSelection('accents', '@ # { [ | \\ ] } € ~ ` ^ ¤')).toMatchObject({ id: 'accents', text: exercises[0].text });
+  expect(resolveExerciseSelection('dead', '')).toMatchObject({ id: 'accents', text: exercises[0].text });
 });
