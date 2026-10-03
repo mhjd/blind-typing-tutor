@@ -7,7 +7,7 @@ Ce document décrit le produit à lancer. Aucune opération VPS, modification Do
 - Dépôt : https://github.com/mhjd/blind-typing-tutor
 - Branche : `feature/french-azerty-trainer`.
 - Baseline examinée : `de164448e147c8926cd1e3ec44482793807d2364`.
-- Révision applicative validée : `3e2cc09e1cb8b25b1d37a97a871bb56936c7868d`. Le commit de documentation qui suit sur cette branche contient ce handoff ; le hash complet de tête à déployer est communiqué dans le compte rendu final.
+- Révision applicative validée : `791ee763cfc39cff7ab51c9906dc0b4a46cad01e`. Le commit de documentation qui suit sur cette branche contient ce handoff ; le hash complet de tête à déployer est communiqué dans le compte rendu final.
 - Next.js 15.5.27, React 19.3.0. Aucune fusion de code upstream après baseline.
 
 ## Construction et lancement
@@ -35,7 +35,7 @@ Aucune base de données, migration, stockage serveur des utilisateurs, tâche p�
 
 ## Stockage et permissions
 
-Le navigateur conserve les préférences et le dernier texte Custom dans `localStorage`. Les statistiques restent en mémoire. Un changement de domaine/origine ou de navigateur n’emporte pas ces données. Le serveur ne reçoit pas le contenu d’exercice. Les logs HTTP habituels du proxy peuvent contenir des chemins de routes (langue/mode), pas le texte saisi.
+Le navigateur conserve le choix parmi les trois exercices, les préférences et le dernier texte libre Custom dans `localStorage`. Les statistiques restent en mémoire. Un changement de domaine/origine ou de navigateur n’emporte pas ces données. Le serveur ne reçoit pas le contenu d’exercice. Les logs HTTP habituels du proxy peuvent contenir des chemins de routes (langue/mode), pas le texte saisi.
 
 Pendant l’installation/build, le checkout, `node_modules`, `.next` et les caches du gestionnaire de paquets nécessitent une écriture. En production, il n’y a aucune écriture applicative de données utilisateur. Next peut écrire ses caches sous **`.next/cache`** ; prévoir ce répertoire inscriptible si les fonctionnalités de cache Next sont utilisées. Le code, les assets et les dépendances peuvent rester en lecture seule. Aucun répertoire de stockage utilisateur ni volume de données persistant n’est requis. Les logs sont envoyés à stdout/stderr, sans fichier journal applicatif.
 
@@ -43,7 +43,7 @@ Le processus n’a besoin ni de root, ni de sudo, ni d’un port privilégié, n
 
 ## HTTP, réseau et santé
 
-- `/` : redirection vers `/fr/fr/words`.
+- `/` : redirection vers `/fr/fr/custom`, exercice des accents au premier lancement.
 - `/{interfaceLang}/{studyLang}/{words|phrases|custom}` : pages de l’application.
 - `/{interfaceLang}` : accueil d’une langue ; `/_next/*` : ressources/protocole de navigation Next.
 - `/robots.txt` et ressources statiques `/public` servies à la racine.
