@@ -24,15 +24,19 @@ export const TypingDisplay: React.FC<TypingDisplayProps> = ({
   const textDisplayRef = useRef<HTMLDivElement>(null);
   const currentCharRef = useRef<HTMLSpanElement>(null);
 
+  // Keep large practice rounds responsive: render only the reading window,
+  // using absolute offsets so validation/feedback remain on the full text.
   const characters = useMemo(() => {
-    let position = 0;
+    let start = Math.max(0, cursorPosition - 120);
+    if (start > 0 && /[\uDC00-\uDFFF]/.test(text[start])) start--;
     const result: Array<{ char: string; index: number }> = [];
-    for (const char of text) {
+    let position = start;
+    for (const char of text.slice(start, cursorPosition + 720)) {
       result.push({ char, index: position });
       position += char.length;
     }
     return result;
-  }, [text]);
+  }, [text, cursorPosition]);
 
   // Auto-scroll to current typing position
   useEffect(() => {
@@ -50,6 +54,8 @@ export const TypingDisplay: React.FC<TypingDisplayProps> = ({
       <div onClick={() => inputRef.current?.focus()}
         ref={textDisplayRef}
         data-testid="text-display"
+        data-exercise-length={text.length}
+        data-cursor-position={cursorPosition}
         className="mb-8 text-3xl font-mono text-gray-900 dark:text-white leading-relaxed wrap-break-words relative tracking-wide whitespace-pre-wrap max-h-32 overflow-y-auto"
       >
         {characters.map(({ char, index }) => {

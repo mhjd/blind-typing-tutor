@@ -41,7 +41,9 @@ Root `/` redirects to `/fr/fr/custom`. New users start with fr-fr AZERTY, the ac
 | `app/[interfaceLang]/[studyLang]/[learningMode]/page.tsx` | Route validation and metadata |
 | `app/[interfaceLang]/[studyLang]/layout.tsx` | Keeps the game mounted across mode changes |
 | `app/[interfaceLang]/[studyLang]/[learningMode]/AppContent.tsx` | Client component — the actual app |
-| `src/config/exercises.ts` | Editable French exercise library |
+| `src/config/exercises.ts` | French exercise titles and base text |
+| `src/config/exerciseContent.ts` | Editable banks for large varied rounds |
+| `src/utils/exerciseRound.ts` | Local round generation, shuffle and different opening |
 | `src/utils/inputPlan.ts` | Character output → physical keystroke plan |
 | `src/components/Game.tsx` | Core typing game component |
 | `src/components/Keyboard.tsx` | Virtual keyboard display |

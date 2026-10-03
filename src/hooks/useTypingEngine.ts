@@ -4,6 +4,7 @@ import { Generator, type Language } from '../utils/Generator';
 import { soundManager } from '../utils/SoundManager';
 import { getStorageItem, setStorageItem, removeStorageItem } from '../utils/storage';
 import { exercises } from '../config/exercises';
+import { createExerciseRound } from '../utils/exerciseRound';
 import { resolveExerciseSelection } from '../utils/exerciseSelection';
 import { getLayout } from '../config/layouts';
 import type { KeyboardLayoutId } from '../types/keyboard';
@@ -48,6 +49,14 @@ export function useTypingEngine({ mode, language, correctionMode, layoutId, help
     setConfirmation(null);
     setPhysicalStep(0);
   }, []);
+  const roundStarts = useRef<Record<string, string>>({});
+  const nextExerciseText = useCallback((id: string) => {
+    const key = `exerciseStart:${id}`;
+    const round = createExerciseRound(id, roundStarts.current[id] ?? getStorageItem(key));
+    roundStarts.current[id] = round.start;
+    setStorageItem(key, round.start);
+    return round.text;
+  }, []);
   const generateText = useCallback(() => {
     if (mode !== 'custom') {
       generator.update();
@@ -68,13 +77,13 @@ export function useTypingEngine({ mode, language, correctionMode, layoutId, help
     if (selection.migratedSnapshot) removeStorageItem('customText');
     setIsCustomSetup(mode === 'custom' && pendingSetup.current);
     pendingSetup.current = false;
-    if (mode === 'custom') setText(selection.text.normalize('NFC'));
+    if (mode === 'custom') setText(selection.id === 'free' ? selection.text.normalize('NFC') : nextExerciseText(selection.id));
     generateText();
     setErrors(0);
     setTotalTyped(0);
     setStartTime(null);
     setWpm(0);
-  }, [mode, language, generateText]);
+  }, [mode, language, generateText, nextExerciseText]);
   useEffect(() => { clearFeedback(); }, [layoutId, helpMode, clearFeedback]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
@@ -132,7 +141,9 @@ export function useTypingEngine({ mode, language, correctionMode, layoutId, help
       accepted += correct ? expected : char;
       if (accepted.length === text.length) {
         accepted = '';
-        if (mode !== 'custom') {
+        if (mode === 'custom' && exerciseId !== 'free') {
+          setText(nextExerciseText(exerciseId));
+        } else if (mode !== 'custom') {
           generator.update();
           setText((mode === 'beginner' ? generator.getOne() : generator.getWords()).normalize('NFC'));
         }
@@ -224,7 +235,7 @@ export function useTypingEngine({ mode, language, correctionMode, layoutId, help
   };
   const selectExercise = (id: string) => {
     const exercise = exercises.find(exercise => exercise.id === id);
-    if (exercise) startText(exercise.text, id);
+    if (exercise) startText(nextExerciseText(id), id);
   };
   const handleCustomSubmit = () => {
     if (!customText.trim()) return;

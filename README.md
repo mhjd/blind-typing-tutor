@@ -10,7 +10,7 @@ L’ouverture de `/` mène à `/fr/fr/custom` : interface française, dispositio
 - **Pratique** : une suite de mots.
 - **Personnalisé** : bibliothèque d’exercices français ou n’importe quel texte saisi/collé. Cliquez sur « Saisir mon texte » pour le modifier.
 
-L’écran principal propose trois exercices, directement sélectionnables : accents/circonflexes/cédille et le ë de Noël, caractères courants avec une attention particulière à @, puis long texte varié avec toutes les lettres et une révision générale. Le niveau d’aide reste visible. Le bouton « Saisir mon texte » permet de coller un texte libre, tandis que les modes historiques, les langues, les dispositions et les options secondaires restent dans « Réglages ». Les statistiques se trouvent dans un volet séparé. Les exercices ne contiennent ni ä/ï/ö/ü, ni €/% ni point-virgule. Le moteur conserve le support de ces caractères pour les textes libres. Elle est directement modifiable dans [`src/config/exercises.ts`](src/config/exercises.ts). Le texte se répète automatiquement à la fin, sans menu. Les statistiques restent cumulées pendant l’entraînement, puis repartent à zéro lors d’un changement d’exercice ou de mode.
+L’écran principal propose trois exercices, directement sélectionnables : accents/circonflexes/cédille et le ë de Noël, caractères courants avec une attention particulière à @, puis long texte varié avec toutes les lettres et une révision générale. Le niveau d’aide reste visible. Le bouton « Saisir mon texte » permet de coller un texte libre, tandis que les modes historiques, les langues, les dispositions et les options secondaires restent dans « Réglages ». Les statistiques se trouvent dans un volet séparé. Les exercices ne contiennent ni ä/ï/ö/ü, ni €/% ni point-virgule. Le moteur conserve le support de ces caractères pour les textes libres. Les titres et textes de base sont modifiables dans [`src/config/exercises.ts`](src/config/exercises.ts), les grandes banques de contenu dans [`src/config/exerciseContent.ts`](src/config/exerciseContent.ts). Chaque exercice prédéfini construit localement un grand tour de plusieurs dizaines de milliers de caractères, mêlant mots, phrases et adresses variés. Le début change à chaque ouverture, sélection et tour, avec conservation du dernier premier mot pour éviter de repartir pareil. À la fin, un nouveau tour est généré sans menu. Un texte libre conserve son ordre et boucle sur lui-même. Les statistiques restent cumulées pendant l’entraînement, puis repartent à zéro lors d’un changement d’exercice ou de mode.
 
 Les quatre aides sont mémorisées dans le navigateur :
 
@@ -29,7 +29,7 @@ Cliquez sur le texte à taper pour reprendre la frappe après avoir utilisé un 
 
 ## Vie privée
 
-Le choix d’exercice, le texte personnalisé et les préférences sont conservés uniquement dans `localStorage`, pour cette origine et ce navigateur. Aucune donnée de frappe, statistique ou texte n’est envoyée au serveur ou à un tiers. Les statistiques sont en mémoire, sans historique serveur. Effacer les données du site efface les préférences et le texte. Si le stockage navigateur est indisponible, l’entraînement reste utilisable mais la persistance ne peut pas être garantie.
+Le choix d’exercice, le dernier point de départ des exercices, le texte personnalisé et les préférences sont conservés uniquement dans `localStorage`, pour cette origine et ce navigateur. Aucune donnée de frappe, statistique ou texte n’est envoyée au serveur ou à un tiers. Les statistiques sont en mémoire, sans historique serveur. Effacer les données du site efface les préférences et le texte. Si le stockage navigateur est indisponible, l’entraînement reste utilisable mais la persistance ne peut pas être garantie.
 
 Au rechargement, les copies exactes des anciens exercices enregistrées dans le navigateur sont reconnues et remplacées par les exercices actuels. Les autres textes libres restent conservés.
 
@@ -59,7 +59,7 @@ Les tests incluent les régressions upstream, les plans physiques français, les
 
 ## Architecture
 
-Next.js 15 App Router, React 19, TypeScript et Tailwind 4. Aucun backend métier, base de données, compte ni secret. Le moteur se trouve dans `src/hooks/useTypingEngine.ts` ; les plans caractère → touches dans `src/utils/inputPlan.ts` ; le clavier dans `src/components/Keyboard.tsx` ; les préférences dans `src/hooks/useAppSettings.ts`.
+Next.js 15 App Router, React 19, TypeScript et Tailwind 4. Aucun backend métier, base de données, compte ni secret. Le moteur se trouve dans `src/hooks/useTypingEngine.ts` ; les plans caractère → touches dans `src/utils/inputPlan.ts` ; les grands tours renouvelés dans `src/utils/exerciseRound.ts`, le clavier dans `src/components/Keyboard.tsx` ; les préférences dans `src/hooks/useAppSettings.ts`.
 
 Le SEO public upstream, ses évaluations artificielles, son sitemap, ses URL canoniques, l’écran promotionnel et les liens WordMemo/Buy Me a Coffee ont été retirés. Les pages portent `noindex` et `robots.txt` interdit l’exploration. Ce n’est pas un contrôle d’accès : la protection d’une instance privée relève de son administrateur.
 

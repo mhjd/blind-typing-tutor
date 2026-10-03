@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { characterInputPlan, highlightedKeys, physicalKeyId } from '../src/utils/inputPlan';
 import { frFrLayout } from '../src/config/layouts/fr-fr';
+import { createExerciseRound } from '../src/utils/exerciseRound';
 import { resolveExerciseSelection } from '../src/utils/exerciseSelection';
 import { exercises } from '../src/config/exercises';
 import { getLayout } from '../src/config/layouts';
@@ -171,7 +172,8 @@ test('premier lancement français et bibliothèque avec texte libre', async ({ p
   await expect(page.getByTestId('exercise-selector').locator('option')).toHaveCount(3);
   await expect(page.getByTestId('settings-panel')).not.toHaveAttribute('open', '');
   await page.getByTestId('exercise-selector').selectOption('paragraph');
-  await expect(page.getByTestId('text-display')).toContainText('Bonjour');
+  await expect(page.getByTestId('text-display')).not.toHaveText('');
+  await expect(page.getByTestId('text-display')).toHaveAttribute('data-exercise-length', /^\d{5,}$/);
   await page.getByTestId('change-exercise').click();
   await page.getByTestId('custom-text-input').fill('Mon texte <script> reste du texte.');
   await page.getByTestId('custom-start-button').click();
@@ -304,7 +306,8 @@ test('bibliothèque métier : trois exercices avec caractères accessibles', () 
 test('choix direct, persistance et texte libre sans perdre l’exercice', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('exercise-selector').selectOption('special');
-  await expect(page.getByTestId('text-display')).toContainText('paul@exemple.fr');
+  await expect(page.getByTestId('text-display')).toHaveAttribute('data-exercise-length', /^\d{5,}$/);
+  await expect(page.getByTestId('text-display')).toContainText('@');
   await page.reload();
   await expect(page.getByTestId('exercise-selector')).toHaveValue('special');
   await page.getByTestId('change-exercise').click();
@@ -312,7 +315,7 @@ test('choix direct, persistance et texte libre sans perdre l’exercice', async 
   await page.getByRole('button', { name: 'Annuler', exact: true }).click();
   await expect(page.getByTestId('exercise-selector')).toHaveValue('special');
   await page.getByTestId('exercise-selector').selectOption('paragraph');
-  await expect(page.getByTestId('text-display')).toContainText('Bonjour !');
+  await expect(page.getByTestId('text-display')).toHaveAttribute('data-exercise-length', /^\d{5,}$/);
 });
 
 
@@ -323,7 +326,8 @@ for (const savedId of [null, 'free', 'altgr']) test(`migration de l’ancien exe
   }, savedId);
   await page.goto('/');
   await expect(page.getByTestId('exercise-selector')).toHaveValue('special');
-  await expect(page.getByTestId('text-display')).toHaveText(exercises[1].text);
+  await expect(page.getByTestId('text-display')).toHaveAttribute('data-exercise-length', /^\d{5,}$/);
+  await expect(page.getByTestId('text-display')).not.toContainText('€');
   expect(await page.evaluate(() => localStorage.getItem('customText'))).toBeNull();
   await page.getByTestId('change-exercise').click();
   await expect(page.getByTestId('custom-text-input')).toHaveValue('');
@@ -335,4 +339,72 @@ test('migration ciblée : vrai texte libre conservé et choix récent prioritair
   expect(resolveExerciseSelection('free', text)).toMatchObject({ id: 'free', text, customText: text, migratedSnapshot: false });
   expect(resolveExerciseSelection('accents', '@ # { [ | \\ ] } € ~ ` ^ ¤')).toMatchObject({ id: 'accents', text: exercises[0].text });
   expect(resolveExerciseSelection('dead', '')).toMatchObject({ id: 'accents', text: exercises[0].text });
+});
+
+
+function seededRandom(seed: number) {
+  let value = seed;
+  return () => { value = (value * 1664525 + 1013904223) >>> 0; return value / 4294967296; };
+}
+for (const exercise of exercises) test(`grands tours variés et début différent : ${exercise.id}`, () => {
+  const first = createExerciseRound(exercise.id, null, seededRandom(5));
+  const second = createExerciseRound(exercise.id, first.start, seededRandom(5));
+  const fresh = createExerciseRound(exercise.id, second.start, seededRandom(19));
+  expect(first.text.length).toBeGreaterThan(10000);
+  expect(second.start).not.toBe(first.start); // even if the random draw repeats
+  expect(fresh.start).not.toBe(second.start);
+  expect(fresh.text).not.toBe(first.text);
+  expect(first.text.slice(0, 500)).not.toBe(second.text.slice(0, 500));
+  for (const round of [first, second, fresh]) {
+    for (const forbidden of "äïöü€%;œ#{}[]|\\~^`¤") {
+      expect(round.text).not.toContain(forbidden);
+    }
+    for (const char of new Set(round.text)) expect(characterInputPlan(char, frFrLayout).length).toBeGreaterThan(0);
+  }
+  if (exercise.id === 'special') expect(first.text.match(/@/g)!.length).toBeGreaterThan(500);
+  if (exercise.id === 'paragraph') for (const char of 'abcdefghijklmnopqrstuvwxyz') expect(first.text.toLowerCase()).toContain(char);
+});
+
+test('nouveau départ à chaque ouverture et affichage borné', async ({ page }) => {
+  await page.goto('/');
+  const display = page.getByTestId('text-display');
+  const start = (await display.textContent())!.trim().split(/\s+/)[0];
+  expect(await display.locator('span').count()).toBeLessThan(850);
+  await page.reload();
+  await expect(page.getByTestId('exercise-selector')).toHaveValue('accents');
+  const next = (await display.textContent())!.trim().split(/\s+/)[0];
+  expect(next).not.toBe(start);
+});
+
+test('fin d’un grand tour : renouvellement sans interruption ni remise à zéro', async ({ page }) => {
+  test.setTimeout(60000);
+  await page.goto('/');
+  await page.getByTestId('keyboard-help-selector').selectOption('hidden');
+  const display = page.getByTestId('text-display');
+  const initialStart = (await display.textContent())!.trim().split(/\s+/)[0];
+  const length = Number(await display.getAttribute('data-exercise-length'));
+  let typed = 0;
+  while (typed < length) {
+    const chunk = await display.evaluate(el => {
+      const spans = Array.from(el.querySelectorAll('span'));
+      const current = spans.findIndex(span => span.dataset.current === 'true');
+      const ahead = spans.slice(current).map(span => span.textContent).join('');
+      return ahead.startsWith('\n') ? '\n' : ahead.split('\n')[0].slice(0, 600);
+    });
+    expect(chunk.length).toBeGreaterThan(0);
+    // Chromium strips newlines from insertText on single-line inputs.
+    // Exercise the real Enter path at line breaks and await rendered progress.
+    if (chunk === '\n') await page.keyboard.press('Enter');
+    else await page.keyboard.insertText(chunk);
+    typed += chunk.length;
+    await expect(display).toHaveAttribute('data-cursor-position', String(typed === length ? 0 : typed));
+    await expect(errors(page)).toHaveText('0');
+  }
+  await expect(input(page)).toHaveValue('');
+  const nextStart = (await display.textContent())!.trim().split(/\s+/)[0];
+  expect(nextStart).not.toBe(initialStart);
+  await expect(display).toHaveAttribute('data-exercise-length', /^\d{5,}$/);
+  await page.keyboard.insertText((await display.locator('[data-current="true"]').textContent())!);
+  await expect(input(page)).not.toHaveValue('');
+  await expect(errors(page)).toHaveText('0');
 });
