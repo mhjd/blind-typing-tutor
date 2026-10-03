@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
-import { AppContent } from "./AppContent";
-import { SEOContent } from "./SEOContent";
 import type { ContentType } from "@/utils/url";
 import {
   INTERFACE_LANGUAGE_OPTIONS,
@@ -17,29 +15,6 @@ interface PageProps {
     studyLang: string;
     learningMode: string;
   }>;
-}
-
-// Generate static params for all route combinations at build time
-export async function generateStaticParams() {
-  const params: Array<{
-    interfaceLang: string;
-    studyLang: string;
-    learningMode: string;
-  }> = [];
-
-  INTERFACE_LANGUAGE_OPTIONS.forEach((interfaceLang) => {
-    LEARNING_LANGUAGE_OPTIONS.forEach((studyLang) => {
-      CONTENT_TYPES.forEach((learningMode) => {
-        params.push({
-          interfaceLang: interfaceLang.code,
-          studyLang: studyLang.code,
-          learningMode,
-        });
-      });
-    });
-  });
-
-  return params;
 }
 
 export async function generateMetadata({
@@ -81,20 +56,5 @@ export default async function LearningModePage({ params }: PageProps) {
     redirect(`/${interfaceLang}/${studyLang}/phrases`);
   }
 
-  return (
-    <>
-      <AppContent
-        params={{
-          interfaceLang,
-          studyLang,
-          learningMode: learningMode as ContentType,
-        }}
-      />
-      <SEOContent
-        interfaceLang={interfaceLang}
-        studyLang={studyLang}
-        learningMode={learningMode as ContentType}
-      />
-    </>
-  );
+  return null;
 }

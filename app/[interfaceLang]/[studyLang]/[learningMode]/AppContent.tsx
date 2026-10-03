@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Game } from "@/components/Game";
 import { getAllLayouts } from "@/config/layouts";
 import { translations } from "@/translations";
@@ -8,7 +8,6 @@ import { useAppSettings } from "@/hooks/useAppSettings";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { Header } from "@/components/layout/Header";
 import { MobileMessage } from "@/components/layout/MobileMessage";
-import { initGA, trackPageView } from "@/utils/analytics";
 import {
   POPULAR_LAYOUT_IDS,
   LEARNING_LANGUAGE_OPTIONS,
@@ -27,15 +26,8 @@ export function AppContent({ params }: AppContentProps) {
   const settings = useAppSettings(params);
   const t = translations[settings.interfaceLanguage];
 
-  // Initialize GA
-  useEffect(() => {
-    initGA();
-  }, []);
-
-  // Track page view on language or mode change
-  useEffect(() => {
-    trackPageView(window.location.pathname, `${t.title} - ${settings.mode}`);
-  }, [settings.interfaceLanguage, settings.mode, t.title]);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { const timer = setTimeout(() => setMounted(true), 0); return () => clearTimeout(timer); }, []);
 
   // Layout filtering and sorting
   const allLayouts = getAllLayouts();
@@ -57,6 +49,8 @@ export function AppContent({ params }: AppContentProps) {
   // Mobile detection
   const isMobile = useIsMobile();
 
+  if (!mounted) return <main className="p-8">Chargement du clavier…</main>;
+
   if (isMobile) {
     return (
       <MobileMessage
@@ -77,10 +71,6 @@ export function AppContent({ params }: AppContentProps) {
     >
       <Header
         title={t.title}
-        reportIssue={t.reportIssue}
-        reportIssueTitle={t.reportIssueTitle}
-        support={t.support}
-        supportTitle={t.supportTitle}
         interfaceLanguageLabel={t.interfaceLanguage}
         lightMode={t.lightMode}
         darkMode={t.darkMode}
@@ -89,12 +79,12 @@ export function AppContent({ params }: AppContentProps) {
         interfaceLanguageOptions={INTERFACE_LANGUAGE_OPTIONS}
         isDarkMode={settings.darkMode}
         setDarkMode={settings.setDarkMode}
-        studyLang={params.studyLang}
-        learningMode={params.learningMode as "words" | "phrases" | "custom"}
       />
 
       <main className="grow pt-20">
         <Game
+          helpMode={settings.helpMode}
+          setHelpMode={settings.setHelpMode}
           mode={settings.mode}
           setMode={settings.setMode}
           layoutId={settings.layoutId}

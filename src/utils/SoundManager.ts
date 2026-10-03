@@ -2,7 +2,8 @@ export class SoundManager {
   private context: AudioContext | null = null;
   private enabled: boolean = false;
 
-  constructor() {
+  private ensureContext() {
+    if (this.context || typeof window === "undefined") return;
     try {
       // Support both standard AudioContext and webkit-prefixed version
       const AudioContextClass =
@@ -42,7 +43,9 @@ export class SoundManager {
   }
 
   public playClick() {
-    if (!this.enabled || !this.context) return;
+    if (!this.enabled) return;
+    this.ensureContext();
+    if (!this.context) return;
 
     const t = this.context.currentTime;
 
@@ -106,7 +109,9 @@ export class SoundManager {
   }
 
   public playError() {
-    if (!this.enabled || !this.context) return;
+    if (!this.enabled) return;
+    this.ensureContext();
+    if (!this.context) return;
 
     const t = this.context.currentTime;
 

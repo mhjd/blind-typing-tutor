@@ -14,7 +14,11 @@ import { CustomSetup } from "./game/CustomSetup";
 import type { LanguageCode } from "../types/keyboard";
 import type { TranslationKeys } from "../translations";
 
+import type { KeyboardHelpMode } from '../utils/inputPlan';
+
 interface GameProps {
+  helpMode: KeyboardHelpMode;
+  setHelpMode: (mode: KeyboardHelpMode) => void;
   mode: "practice" | "beginner" | "custom";
   setMode: (mode: "practice" | "beginner" | "custom") => void;
   layoutId: KeyboardLayoutId;
@@ -45,6 +49,7 @@ interface GameProps {
 
 export const Game: React.FC<GameProps> = ({
   mode,
+  helpMode, setHelpMode,
   setMode,
   layoutId,
   setLayoutId,
@@ -69,19 +74,19 @@ export const Game: React.FC<GameProps> = ({
 }) => {
   const {
     text,
-    input,
+    input, cursorPosition,
     inputRef,
     wpm,
     accuracy,
     errors,
     lastPressedKey,
-    activeKey,
+    visibleTarget, inputValue, handleKeyDown, handleCompositionStart, handleCompositionEnd, setIsCustomSetup,
     customText,
     setCustomText,
     isCustomSetup,
     handleInput,
     handleCustomSubmit,
-  } = useTypingEngine({ mode, language, correctionMode });
+  } = useTypingEngine({ mode, language, correctionMode, layoutId, helpMode });
 
   const currentLayout = useMemo(() => getLayout(layoutId), [layoutId]);
   const shouldShowHints = currentLayout.language !== learningLanguage;
@@ -103,12 +108,7 @@ export const Game: React.FC<GameProps> = ({
       className={`flex flex-col items-center bg-transparent p-4 ${!showKeyboard ? "pb-24" : ""
         }`}
     >
-      <Stats
-        wpm={wpm}
-        accuracy={accuracy}
-        errors={errors}
-        translations={gameTranslations}
-      />
+
 
       <GameControls
         mode={mode}
@@ -121,9 +121,30 @@ export const Game: React.FC<GameProps> = ({
         translations={gameTranslations}
       />
 
+      <div className="flex flex-wrap items-center justify-center gap-4 mb-6 text-lg text-gray-900 dark:text-white">
+        <label className="flex items-center gap-3">
+          Aide clavier
+          <select data-testid="keyboard-help-selector" value={helpMode} onChange={event => setHelpMode(event.target.value as KeyboardHelpMode)} className="p-3 rounded-lg border-2 bg-white dark:bg-gray-800">
+            <option value="guided">Guidé</option>
+            <option value="confirm">Confirmation</option>
+            <option value="mistakes-only">Erreurs seulement</option>
+            <option value="hidden">Sans aide</option>
+          </select>
+        </label>
+        {mode === 'custom' && <button data-testid="change-exercise" className="p-3 rounded-lg border-2" onClick={() => setIsCustomSetup(true)}>Changer d’exercice ou de texte</button>}
+        <p className="w-full text-center text-base" data-testid="help-description">
+          {helpMode === 'guided' ? 'La touche à utiliser est indiquée. Prenez votre temps.' : helpMode === 'confirm' ? 'Cherchez la touche : elle est révélée après votre tentative.' : helpMode === 'mistakes-only' ? 'La bonne touche est révélée seulement après une erreur.' : 'Cherchez les touches sans indication de la réponse.'}
+        </p>
+      </div>
+
       <TypingDisplay
         text={text}
         input={input}
+        cursorPosition={cursorPosition}
+        inputValue={inputValue}
+        handleKeyDown={handleKeyDown}
+        handleCompositionStart={handleCompositionStart}
+        handleCompositionEnd={handleCompositionEnd}
         handleInput={handleInput}
         inputRef={inputRef}
       />
@@ -145,38 +166,24 @@ export const Game: React.FC<GameProps> = ({
         translations={gameTranslations}
       />
 
+      <Stats
+        wpm={wpm}
+        accuracy={accuracy}
+        errors={errors}
+        translations={gameTranslations}
+      />
+
       {showKeyboard && (
         <>
           <Keyboard
-            activeKey={activeKey}
+            target={visibleTarget}
             layoutId={layoutId}
             showHands={showHands}
             showColors={showColors}
             showEnglishHints={shouldShowHints}
             lastPressedKey={lastPressedKey}
           />
-          <div className="mt-6 flex justify-center">
-            <a
-              data-testid="wordmemo-link"
-              href="https://wordmemo.net/en/blind-typing-tutor"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors group"
-              title="WordMemo - Language Learning Platform"
-              aria-label="WordMemo - Language Learning Platform"
-            >
-              <img
-                src="/wordmemo-logo.svg"
-                alt="WordMemo"
-                className="h-5 w-5 transition-transform group-hover:scale-105"
-                width="20"
-                height="20"
-              />
-              <span className="font-medium text-sm text-gray-700 dark:text-gray-300">
-                wordmemo.net
-              </span>
-            </a>
-          </div>
+
         </>
       )}
     </div>

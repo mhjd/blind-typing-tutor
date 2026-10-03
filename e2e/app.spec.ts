@@ -4,7 +4,7 @@ test.describe("Blind Typing Tutor E2E Tests", () => {
   test.beforeEach(async ({ page, browserName }) => {
     // Use 'load' for Firefox to ensure all resources are loaded
     const waitUntil = browserName === "firefox" ? "load" : "domcontentloaded";
-    await page.goto("/", { waitUntil });
+    await page.goto("/en/en/words", { waitUntil });
 
     // Wait for React to hydrate and the app to render
     // Firefox may need more time

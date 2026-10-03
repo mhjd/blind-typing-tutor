@@ -1,218 +1,221 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { Generator, type Language } from "../utils/Generator";
-import { soundManager } from "../utils/SoundManager";
-import { getStorageItem, setStorageItem } from "../utils/storage";
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import type React from 'react';
+import { Generator, type Language } from '../utils/Generator';
+import { soundManager } from '../utils/SoundManager';
+import { getStorageItem, setStorageItem } from '../utils/storage';
+import { getLayout } from '../config/layouts';
+import type { KeyboardLayoutId } from '../types/keyboard';
+import { characterInputPlan, physicalKeyId, type CharacterInputPlan, type KeyboardHelpMode } from '../utils/inputPlan';
 
 interface TypingEngineProps {
-  mode: "practice" | "beginner" | "custom";
+  mode: 'practice' | 'beginner' | 'custom';
   language: Language;
   correctionMode: boolean;
+  layoutId: KeyboardLayoutId;
+  helpMode: KeyboardHelpMode;
 }
 
-export function useTypingEngine({ mode, language, correctionMode }: TypingEngineProps) {
-  const [text, setText] = useState("");
-  const [input, setInput] = useState("");
+export function useTypingEngine({ mode, language, correctionMode, layoutId, helpMode }: TypingEngineProps) {
+  const [text, setText] = useState('');
+  const [input, setInput] = useState('');
+  const [compositionValue, setCompositionValue] = useState<string | null>(null);
+  const composing = useRef(false);
+  const compositionCommit = useRef<{ value: string; data: string } | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const completionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // Stats State
-  const [startTime, setStartTime] = useState<number | null>(null);
   const [errors, setErrors] = useState(0);
   const [totalTyped, setTotalTyped] = useState(0);
+  const [startTime, setStartTime] = useState<number | null>(null);
   const [wpm, setWpm] = useState(0);
-  const [accuracy, setAccuracy] = useState(100);
   const [lastPressedKey, setLastPressedKey] = useState<string | null>(null);
-
-  // Generator
-  const generator = useMemo(() => new Generator(language), [language]);
-
-  // Custom Mode State
-  const [customText, setCustomText] = useState(() => getStorageItem("customText") || "");
+  const [confirmation, setConfirmation] = useState<{ text: string; input: string; position: number } | null>(null);
+  const [feedbackTarget, setFeedbackTarget] = useState<CharacterInputPlan>([]);
+  const [physicalStep, setPhysicalStep] = useState(0);
+  const [customText, setCustomText] = useState('');
   const [isCustomSetup, setIsCustomSetup] = useState(false);
+  const previousMode = useRef(mode);
+  const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const generator = useMemo(() => new Generator(language), [language]);
+  const layout = useMemo(() => getLayout(layoutId), [layoutId]);
+  const activeTarget = characterInputPlan(text[input.length] ?? null, layout);
 
-  // Track previous mode to detect mode switches
-  const prevModeRef = useRef<"practice" | "beginner" | "custom">(mode);
-  // Track if this is the initial mount
-  const isInitialMountRef = useRef(true);
-
+  const clearFeedback = useCallback(() => {
+    if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
+    setFeedbackTarget([]);
+    setConfirmation(null);
+    setPhysicalStep(0);
+  }, []);
   const generateText = useCallback(() => {
-    if (mode === "custom") {
-      setInput("");
-    } else if (mode === "beginner") {
-      setText(generator.getOne());
-      setInput("");
-    } else {
+    if (mode !== 'custom') {
       generator.update();
-      setText(generator.getWords());
-      setInput("");
+      setText((mode === 'beginner' ? generator.getOne() : generator.getWords()).normalize('NFC'));
     }
+    setInput('');
+    clearFeedback();
+  }, [mode, generator, clearFeedback]);
 
-    setStartTime(null);
+  /* eslint-disable react-hooks/set-state-in-effect -- initialize a new exercise */
+  useEffect(() => {
+    const saved = getStorageItem('customText') || '';
+    setCustomText(saved);
+    setIsCustomSetup(mode === 'custom' && (previousMode.current !== 'custom' || !saved.trim()));
+    previousMode.current = mode;
+    if (mode === 'custom') setText(saved.normalize('NFC'));
+    generateText();
     setErrors(0);
     setTotalTyped(0);
+    setStartTime(null);
     setWpm(0);
-    setAccuracy(100);
-    // Defer focus to ensure DOM is ready
-    setTimeout(() => inputRef.current?.focus(), 0);
-  }, [mode, generator]);
-
-  // Initialize text when mode or language changes
-  /* eslint-disable react-hooks/set-state-in-effect -- intentional mode/language initialization */
-  useEffect(() => {
-    if (mode === "custom") {
-      const saved = getStorageItem("customText");
-      const isSwitchingToCustom = !isInitialMountRef.current && prevModeRef.current !== "custom";
-
-      if (isSwitchingToCustom) {
-        setIsCustomSetup(true);
-        setText("");
-        setCustomText(saved || "");
-      } else if (isInitialMountRef.current && saved && saved.trim()) {
-        setText(saved.trim());
-        setIsCustomSetup(false);
-      } else if (saved && saved.trim()) {
-        setText(saved.trim());
-        setIsCustomSetup(false);
-      } else {
-        setIsCustomSetup(true);
-        setText("");
-      }
-    } else {
-      setIsCustomSetup(false);
-      generateText();
-    }
-
-    // Update previous mode and mark initial mount as complete
-    prevModeRef.current = mode;
-    if (isInitialMountRef.current) {
-      isInitialMountRef.current = false;
-    }
   }, [mode, language, generateText]);
+  useEffect(() => { clearFeedback(); }, [layoutId, helpMode, clearFeedback]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Timer for WPM updates
   useEffect(() => {
-    let interval: ReturnType<typeof setInterval>;
-    if (startTime) {
-      interval = setInterval(() => {
-        const timeInMinutes = (Date.now() - startTime) / 60000;
-        const currentWpm = totalTyped / 5 / timeInMinutes;
-        setWpm(Math.max(0, currentWpm));
-      }, 1000);
-    }
-    return () => clearInterval(interval);
+    if (!isCustomSetup) inputRef.current?.focus();
+  }, [isCustomSetup, mode, layoutId, helpMode]);
+  useEffect(() => () => {
+    if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
+    if (pressedTimer.current) clearTimeout(pressedTimer.current);
+  }, []);
+  useEffect(() => {
+    if (!startTime) return;
+    const timer = setInterval(() => setWpm(totalTyped / 5 / ((Date.now() - startTime) / 60000)), 1000);
+    return () => clearInterval(timer);
   }, [startTime, totalTyped]);
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
+  const reveal = (plan: CharacterInputPlan, persistent: boolean) => {
+    if (feedbackTimer.current) clearTimeout(feedbackTimer.current);
+    setConfirmation(null);
+    setFeedbackTarget(helpMode === 'hidden' ? [] : plan);
+    if (!persistent) feedbackTimer.current = setTimeout(() => { setFeedbackTarget([]); setConfirmation(null); }, 350);
+  };
 
-    if (val.length > text.length) {
-      e.target.value = input;
+  const processValue = (raw: string) => {
+    const value = raw.normalize('NFC');
+    if (value === input) return; // compositionend and input may both deliver the result
+    if (value.length < input.length) {
+      setInput(value);
+      clearFeedback();
       return;
     }
-
-    if (!startTime && val.length > 0) {
-      setStartTime(Date.now());
-    }
-
-    if (val.length > input.length) {
-      const lastCharIndex = val.length - 1;
-      const expectedChar = text[lastCharIndex];
-      const typedChar = val[lastCharIndex];
-
-      setTotalTyped((prev) => prev + 1);
-
-      if (typedChar !== expectedChar) {
+    // Process pasted text too, one final Unicode character at a time.
+    let accepted = input;
+    let attempts = 0;
+    let mistakes = 0;
+    for (const char of Array.from(value.slice(input.length))) {
+      const expected = Array.from(text.slice(accepted.length))[0];
+      const plan = characterInputPlan(expected, layout);
+      const correct = char === expected || (char === ' ' && ['\u00a0', '\u202f'].includes(expected));
+      attempts++;
+      setPhysicalStep(0);
+      if (!correct) {
+        mistakes++;
         soundManager.playError();
-        setErrors((prev) => {
-          const newErrors = prev + 1;
-          const newTotal = totalTyped + 1;
-          setAccuracy(Math.max(0, ((newTotal - newErrors) / newTotal) * 100));
-          return newErrors;
-        });
-
-        if (correctionMode) return;
+        reveal(plan, correctionMode);
+        if (correctionMode) break;
       } else {
         soundManager.playClick();
-        const newTotal = totalTyped + 1;
-        setAccuracy(Math.max(0, ((newTotal - errors) / newTotal) * 100));
+        if (helpMode === 'confirm') {
+          reveal(plan, false);
+          setConfirmation({ text, input: accepted + expected, position: accepted.length });
+        }
+        else clearFeedback();
       }
-    } else if (val.length < input.length) {
-      // Backspace
-      let currentErrors = 0;
-      for (let i = 0; i < val.length; i++) {
-        if (val[i] !== text[i]) currentErrors++;
+      accepted += correct ? expected : char;
+      if (accepted.length === text.length) {
+        accepted = '';
+        if (mode !== 'custom') {
+          generator.update();
+          setText((mode === 'beginner' ? generator.getOne() : generator.getWords()).normalize('NFC'));
+        }
+        break;
       }
-      setErrors(currentErrors);
-      setAccuracy(val.length > 0 ? Math.max(0, ((val.length - currentErrors) / val.length) * 100) : 100);
-      setTotalTyped(val.length);
     }
-
-    setInput(val);
-
-    if (val.length === text.length) {
-      if (completionTimeoutRef.current) clearTimeout(completionTimeoutRef.current);
-      completionTimeoutRef.current = setTimeout(() => {
-        generateText();
-        completionTimeoutRef.current = null;
-      }, 300);
-    }
+    // Only invoked by input/composition/key event handlers, never during render.
+    // eslint-disable-next-line react-hooks/purity
+    if (attempts && !startTime) setStartTime(Date.now());
+    setTotalTyped(count => count + attempts);
+    setErrors(count => count + mistakes);
+    setInput(accepted);
   };
 
+  const handleInput = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const native = event.nativeEvent as InputEvent;
+    if (composing.current || native.isComposing) {
+      setCompositionValue(event.target.value);
+      return;
+    }
+    // Firefox emits a final input after compositionend, including when the
+    // output was rejected or completed the loop. Compare the delivered output,
+    // not accepted input, to avoid counting that same attempt twice.
+    const commit = compositionCommit.current;
+    compositionCommit.current = null;
+    if (commit && (event.target.value.normalize('NFC') === commit.value || native.data?.normalize('NFC') === commit.data)) return;
+    // Use browser-delivered insertion data, independent of the hidden field's
+    // caret position. Fall back to full value for deletion and paste events.
+    processValue(native.data && native.inputType.startsWith('insert') ? input + native.data : event.target.value);
+  };
+  const handleCompositionStart = () => {
+    compositionCommit.current = null;
+    composing.current = true;
+    setCompositionValue(input);
+  };
+  const handleCompositionEnd = (event: React.CompositionEvent<HTMLInputElement>) => {
+    composing.current = false;
+    setCompositionValue(null);
+    compositionCommit.current = { value: event.currentTarget.value.normalize('NFC'), data: event.data.normalize('NFC') };
+    processValue(event.data ? input + event.data : event.currentTarget.value);
+  };
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    compositionCommit.current = null;
+    if (!composing.current) event.currentTarget.setSelectionRange(input.length, input.length);
+    const id = physicalKeyId(event.code) ?? characterInputPlan(event.key, layout)[0]?.keyId ?? null;
+    if (id) {
+      setLastPressedKey(id);
+      if (pressedTimer.current) clearTimeout(pressedTimer.current);
+      pressedTimer.current = setTimeout(() => setLastPressedKey(null), 350);
+    }
+    // Modifier presses never advance the text or count as attempts.
+    if (['Shift', 'Alt', 'AltGraph', 'Control', 'Meta', 'CapsLock'].includes(event.key)) return;
+    if (event.key === 'Backspace') { clearFeedback(); return; }
+    if (event.key === 'Dead') {
+      const step = activeTarget[physicalStep];
+      const altgr = event.getModifierState('AltGraph') || (event.ctrlKey && event.altKey);
+      const matches = step?.deadKey && step.keyId === id &&
+        step.modifiers.includes('shift') === event.shiftKey && step.modifiers.includes('altgr') === altgr;
+      if (matches) setPhysicalStep(index => index + 1);
+      else {
+        setPhysicalStep(0);
+        if (helpMode !== 'guided') reveal(activeTarget, correctionMode);
+      }
+      return; // no final output yet: no error/stat increment
+    }
+    if ((event.key === 'Enter' && text[input.length] === '\n') || (event.key === 'Tab' && text[input.length] === '\t')) {
+      event.preventDefault();
+      processValue(input + text[input.length]);
+    }
+  };
   const handleCustomSubmit = () => {
-    if (customText.trim()) {
-      const trimmedText = customText.trim();
-      setText(trimmedText);
-      setStorageItem("customText", trimmedText);
-      setIsCustomSetup(false);
-      setStartTime(null);
-      setErrors(0);
-      setTotalTyped(0);
-      setWpm(0);
-      setAccuracy(100);
-      setInput("");
-      setTimeout(() => inputRef.current?.focus(), 100);
-    }
+    if (!customText.trim()) return;
+    const normalized = customText.replace(/\r\n?/g, '\n').normalize('NFC');
+    setText(normalized);
+    setCustomText(normalized);
+    setStorageItem('customText', normalized);
+    setIsCustomSetup(false);
+    setInput('');
+    setErrors(0);
+    setTotalTyped(0);
+    setStartTime(null);
+    setWpm(0);
+    clearFeedback();
   };
-
-  const activeKey = useMemo(() => {
-    if (input.length >= text.length) return null;
-    return text[input.length];
-  }, [input.length, text]);
-
-  // Keyboard highlighting listener
-  useEffect(() => {
-    const timeoutRefs: ReturnType<typeof setTimeout>[] = [];
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (isCustomSetup) return;
-      timeoutRefs.forEach(clearTimeout);
-      timeoutRefs.length = 0;
-
-      let keyLabel: string | null = null;
-      if (e.key.length === 1) keyLabel = e.key;
-      else if (["Backspace", "Enter", "Tab", " "].includes(e.key)) {
-        keyLabel = e.key.toLowerCase() === " " ? " " : e.key.toLowerCase();
-      }
-
-      if (keyLabel) {
-        setLastPressedKey(keyLabel);
-        const timeout = setTimeout(() => setLastPressedKey(null), 200);
-        timeoutRefs.push(timeout);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      timeoutRefs.forEach(clearTimeout);
-    };
-  }, [isCustomSetup]);
 
   return {
-    text, input, setInput, inputRef,
-    startTime, errors, totalTyped, wpm, accuracy,
-    lastPressedKey, activeKey,
+    text: confirmation?.text ?? text, input: confirmation?.input ?? input, cursorPosition: confirmation?.position ?? input.length, inputValue: compositionValue ?? input, inputRef, errors, wpm,
+    accuracy: totalTyped ? Math.max(0, (totalTyped - errors) / totalTyped * 100) : 100,
+    activeTarget, lastPressedKey, feedbackTarget,
+    visibleTarget: helpMode === 'guided' ? activeTarget.slice(physicalStep, physicalStep + 1) : helpMode === 'hidden' ? [] : feedbackTarget,
     customText, setCustomText, isCustomSetup, setIsCustomSetup,
-    handleInput, handleCustomSubmit, generateText
+    handleInput, handleKeyDown, handleCompositionStart, handleCompositionEnd, handleCustomSubmit,
   };
 }

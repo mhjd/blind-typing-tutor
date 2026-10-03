@@ -2,10 +2,10 @@ import type { TranslationKeys } from "./types";
 import type { LanguageCode } from "../types/keyboard";
 
 export const translations = {
-  title: "Entraîneur de Dactylographie",
-  practice: "Pratique",
-  beginner: "Débutant",
-  custom: "Personnalisé",
+  title: "Apprendre le clavier",
+  practice: "Plusieurs mots",
+  beginner: "Un mot à la fois",
+  custom: "Exercices et texte libre",
   pasteText: "Collez votre texte ici...",
   start: "Commencer",
   soundOn: "Son Activé",

@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { KeyboardLayoutId, KeyDefinition } from '../types/keyboard';
 import { getLayout } from '../config/layouts';
+import { highlightedKeys, type CharacterInputPlan } from '../utils/inputPlan';
 
 interface KeyboardProps {
-  activeKey: string | null;
+  target: CharacterInputPlan;
   layoutId: KeyboardLayoutId;
   showHands: boolean;
   showColors: boolean;
@@ -14,7 +15,7 @@ interface KeyboardProps {
 }
 
 export const Keyboard: React.FC<KeyboardProps> = ({
-  activeKey,
+  target,
   layoutId,
   showHands,
   showColors,
@@ -28,116 +29,15 @@ export const Keyboard: React.FC<KeyboardProps> = ({
   // Server always renders without hints, client enables after hydration
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
-    setTimeout(() => {
-      setMounted(true);
-    }, 0);
+    const timer = setTimeout(() => { setMounted(true); }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const effectiveShowEnglishHints = mounted && showEnglishHints;
 
-  // Compute target key and shift state from activeKey using useMemo instead of useEffect
-  const { targetKeyId, shiftTarget, spaceHand } = useMemo(() => {
-    if (!activeKey) {
-      return { targetKeyId: null, shiftTarget: null, spaceHand: null };
-    }
-
-    // Handle space character
-    if (activeKey === ' ' || activeKey === '\u00A0') { // Regular space or non-breaking space
-      return { targetKeyId: 'space', shiftTarget: null, spaceHand: 'r' as const };
-    }
-
-    // Normalize the key for comparison (handle case-insensitive matching)
-    const normalizedKey = activeKey.toLowerCase();
-    const isUpperCase = activeKey !== normalizedKey;
-
-    // Find the key in the layout - check primary, shifted, and altGr
-    const keyDef = layout.keys.find(k => {
-      const primaryMatch = k.primary.toLowerCase() === normalizedKey;
-      const shiftedMatch = k.shifted?.toLowerCase() === normalizedKey;
-      const altGrMatch = k.altGr?.toLowerCase() === normalizedKey;
-
-      // For exact case matching when key is uppercase
-      if (isUpperCase) {
-        return k.shifted === activeKey || k.primary === activeKey || k.altGr === activeKey;
-      }
-
-      return primaryMatch || shiftedMatch || altGrMatch;
-    });
-
-    if (keyDef) {
-      // Check if shift is needed
-      // Shift is needed ONLY if:
-      // 1. The activeKey is uppercase AND matches the shifted key, OR
-      // 2. The activeKey (case-insensitive) matches the shifted key AND the primary key is different
-      // For lowercase characters, they should match the primary key (no shift needed)
-      let isShifted = false;
-      if (isUpperCase) {
-        // Uppercase character - check if it matches the shifted key
-        isShifted = keyDef.shifted === activeKey;
-      } else {
-        // Lowercase character - check if it matches primary key
-        // If it matches shifted key but not primary, then shift is needed (for special characters)
-        const matchesPrimary = keyDef.primary.toLowerCase() === normalizedKey;
-        const matchesShifted = keyDef.shifted?.toLowerCase() === normalizedKey;
-        // Only need shift if it matches shifted but NOT primary (e.g., '!' on '1' key)
-        isShifted = matchesShifted && !matchesPrimary;
-      }
-
-      if (isShifted) {
-        // Determine shift side based on which hand types the key
-        const isLeftHand = layout.leftHandKeys.includes(keyDef.primary.toLowerCase());
-        return {
-          targetKeyId: keyDef.id,
-          shiftTarget: (isLeftHand ? 'r' : 'l') as 'l' | 'r',
-          spaceHand: null
-        };
-      } else {
-        return { targetKeyId: keyDef.id, shiftTarget: null, spaceHand: null };
-      }
-    } else {
-      // Key not found in layout - might be a special character
-      return { targetKeyId: null, shiftTarget: null, spaceHand: null };
-    }
-  }, [activeKey, layout.keys, layout.leftHandKeys]);
-
-  // Compute pressed key ID from lastPressedKey using useMemo instead of useEffect
-  const pressedKeyId = useMemo(() => {
-    if (!lastPressedKey) {
-      return null;
-    }
-
-    // Handle special keys
-    if (lastPressedKey === 'backspace') {
-      return 'backspace';
-    }
-    if (lastPressedKey === 'enter') {
-      return 'enter';
-    }
-    if (lastPressedKey === 'tab') {
-      return 'tab';
-    }
-    if (lastPressedKey === ' ') {
-      return 'space';
-    }
-
-    // Find the key in the layout
-    const normalizedKey = lastPressedKey.toLowerCase();
-    const isUpperCase = lastPressedKey !== normalizedKey;
-
-    const keyDef = layout.keys.find(k => {
-      const primaryMatch = k.primary.toLowerCase() === normalizedKey;
-      const shiftedMatch = k.shifted?.toLowerCase() === normalizedKey;
-      const altGrMatch = k.altGr?.toLowerCase() === normalizedKey;
-
-      if (isUpperCase) {
-        return k.shifted === lastPressedKey || k.primary === lastPressedKey || k.altGr === lastPressedKey;
-      }
-
-      return primaryMatch || shiftedMatch || altGrMatch;
-    });
-
-    return keyDef ? keyDef.id : null;
-  }, [lastPressedKey, layout.keys]);
+  const targetIds = highlightedKeys(target, layout);
+  const pressedKeyId = lastPressedKey;
+  const spaceHand = targetIds.includes('space') ? 'r' : null;
 
   // Color mapping based on hands2.png - centralized for easy maintenance
   const getGroupColor = (group: number | null, opacity: number = 1): { backgroundColor: string } | null => {
@@ -170,7 +70,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
   };
 
   const getKeyClass = (keyId: string, group?: number): { className: string; style?: React.CSSProperties } => {
-    let classes = "key flex justify-center items-center border border-gray-800 rounded m-0.5 text-sm capitalize transition-colors duration-100 relative ";
+    let classes = "key flex justify-center items-center border border-gray-800 rounded m-0.5 text-lg transition-colors duration-100 relative ";
     let style: React.CSSProperties | undefined;
 
     // Size classes based on width property
@@ -197,7 +97,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
     const isSpace = keyId === 'space';
 
     // Active state (correct key)
-    const isActive = keyId === targetKeyId || (keyId === `shift-${shiftTarget}`);
+    const isActive = targetIds.includes(keyId);
 
     // Pressed state (any key pressed, even if incorrect)
     const isPressed = keyId === pressedKeyId || (pressedKeyId === 'space' && keyId === 'space');
@@ -244,7 +144,11 @@ export const Keyboard: React.FC<KeyboardProps> = ({
   const renderKeyContent = (keyDef: KeyDefinition) => {
     // Special keys
     if (['tab', 'caps_lock', 'shift-l', 'shift-r', 'backspace', 'enter', 'space'].includes(keyDef.id)) {
-      return keyDef.primary.replace('-', ' ');
+      if (layout.language === 'fr') {
+        const labels: Record<string, string> = { tab: 'Tab', caps_lock: 'Verr. Maj', 'shift-l': 'Maj', 'shift-r': 'Maj', backspace: '⌫', enter: 'Entrée', space: 'Espace' };
+        return <span className="text-base">{labels[keyDef.id]}</span>;
+      }
+      return keyDef.id === 'backspace' ? '⌫' : keyDef.primary.replace('-', ' ');
     }
 
     // Show English hints for non-English layouts (only after mount to prevent hydration mismatch)
@@ -260,12 +164,12 @@ export const Keyboard: React.FC<KeyboardProps> = ({
       }
     }
 
-    return keyDef.primary;
+    return <div className="flex flex-col items-center leading-tight"><span className="text-xs">{keyDef.shifted} {keyDef.altGr && `· ${keyDef.altGr}`}</span><span>{keyDef.primary}</span></div>;
   };
 
   // Get keys for each row using a more robust row detection system
   // This determines rows based on key positions relative to row markers
-  const rowKeys = useMemo(() => {
+  const rowKeys = (() => {
     const keys = layout.keys;
     const tabIndex = keys.findIndex(k => k.id === 'tab');
     const capsIndex = keys.findIndex(k => k.id === 'caps_lock');
@@ -291,19 +195,19 @@ export const Keyboard: React.FC<KeyboardProps> = ({
     });
 
     return rows;
-  }, [layout.keys]);
+  })();
 
   const [row1Keys, row2Keys, row3Keys, row4Keys, row5Keys] = rowKeys;
   const spaceKey = row5Keys?.[0];
 
   return (
-    <div className="flex flex-col items-center justify-center mt-12 select-none opacity-100 transition-opacity duration-200 w-full max-w-[855px] mx-auto">
+    <div data-testid="virtual-keyboard" className="flex flex-col items-center justify-center mt-6 select-none opacity-100 transition-opacity duration-200 w-full max-w-[855px] mx-auto">
       {/* Row 1 - Number row */}
       <div className="flex w-full">
         {row1Keys.map(key => {
           const { className, style } = getKeyClass(key.id, key.group);
           return (
-            <div key={key.id} id={key.id} className={className} style={style}>
+            <div key={key.id} id={key.id} data-target={targetIds.includes(key.id)} data-pressed={pressedKeyId === key.id} className={className} style={style}>
               {renderKeyContent(key)}
             </div>
           );
@@ -315,7 +219,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
         {row2Keys.map(key => {
           const { className, style } = getKeyClass(key.id, key.group);
           return (
-            <div key={key.id} id={key.id} className={className} style={style}>
+            <div key={key.id} id={key.id} data-target={targetIds.includes(key.id)} data-pressed={pressedKeyId === key.id} className={className} style={style}>
               {renderKeyContent(key)}
             </div>
           );
@@ -327,7 +231,7 @@ export const Keyboard: React.FC<KeyboardProps> = ({
         {row3Keys.map(key => {
           const { className, style } = getKeyClass(key.id, key.group);
           return (
-            <div key={key.id} id={key.id} className={className} style={style}>
+            <div key={key.id} id={key.id} data-target={targetIds.includes(key.id)} data-pressed={pressedKeyId === key.id} className={className} style={style}>
               {renderKeyContent(key)}
             </div>
           );
@@ -339,19 +243,20 @@ export const Keyboard: React.FC<KeyboardProps> = ({
         {row4Keys.map(key => {
           const { className, style } = getKeyClass(key.id, key.group);
           return (
-            <div key={key.id} id={key.id} className={className} style={style}>
+            <div key={key.id} id={key.id} data-target={targetIds.includes(key.id)} data-pressed={pressedKeyId === key.id} className={className} style={style}>
               {renderKeyContent(key)}
             </div>
           );
         })}
       </div>
 
-      {/* Row 5 - Space bar */}
+      {/* Row 5 - Space bar and right Alt modifier */}
       <div className="flex w-full justify-center h-[60px]">
         {spaceKey && spaceKey.id === 'space' && (() => {
           const { className, style } = getKeyClass('space');
-          return <div id="space" className={className} style={style}></div>;
+          return <div id="space" data-target={targetIds.includes("space")} data-pressed={pressedKeyId === "space"} className={className} style={style}>Espace</div>;
         })()}
+        <div id="altgr" data-target={targetIds.includes('altgr')} data-pressed={pressedKeyId === 'altgr'} className={getKeyClass('altgr').className + ' ml-4'} style={targetIds.includes('altgr') ? { backgroundColor: '#FCE94F' } : undefined}>AltGr</div>
       </div>
     </div>
   );

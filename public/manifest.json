@@ -1,7 +1,7 @@
 {
-  "name": "Blind Typing Tutor - Free Touch Typing Trainer",
-  "short_name": "Typing Tutor",
-  "description": "Master touch typing with 28+ keyboard layouts, 8 learning languages, real-time WPM tracking, accuracy stats, visual keyboard, and audio feedback. Free and open source.",
+  "name": "Apprendre le clavier",
+  "short_name": "Clavier",
+  "description": "Entra\u00eenement au clavier sans t\u00e9l\u00e9m\u00e9trie",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -39,27 +39,27 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["education", "productivity", "utilities"],
-  "lang": "en",
+  "categories": [
+    "education",
+    "productivity",
+    "utilities"
+  ],
+  "lang": "fr",
   "dir": "ltr",
   "scope": "/",
   "prefer_related_applications": false,
-  "screenshots": [
-    {
-      "src": "/og-image.png",
-      "sizes": "1200x630",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Blind Typing Tutor Interface"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Start Typing",
       "short_name": "Type",
       "description": "Start a typing practice session",
       "url": "/",
-      "icons": [{ "src": "/favicon-32x32.png", "sizes": "32x32" }]
+      "icons": [
+        {
+          "src": "/favicon-32x32.png",
+          "sizes": "32x32"
+        }
+      ]
     }
   ]
 }

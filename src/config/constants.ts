@@ -5,12 +5,6 @@ import type { InterfaceLanguage } from "../translations";
 // Application Constants
 // ============================================================================
 
-/**
- * Base URL for the application
- * Used for canonical URLs, sitemap generation, and metadata
- */
-export const BASE_URL = "https://blind-typing-tutor.wordmemo.net";
-
 // ============================================================================
 // Language Validation
 // ============================================================================

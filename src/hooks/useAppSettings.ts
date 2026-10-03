@@ -5,12 +5,8 @@ import { useRouter, usePathname } from "next/navigation";
 import type { KeyboardLayoutId, LanguageCode } from "../types/keyboard";
 import { getAllLayouts } from "../config/layouts";
 import type { InterfaceLanguage } from "../translations";
-import {
-  detectKeyboardLayout,
-  detectLearningLanguage,
-  detectInterfaceLanguage,
-} from "../utils/browserDetection";
-import { getStorageItem, setStorageItem, removeStorageItem } from "../utils/storage";
+import type { KeyboardHelpMode } from '../utils/inputPlan';
+import { getStorageItem, setStorageItem } from "../utils/storage";
 import { updateDocumentDirection } from "../utils/textDirection";
 import { soundManager } from "../utils/SoundManager";
 import { parseUrlPath, buildUrlPath, type ContentType } from "../utils/url";
@@ -82,7 +78,7 @@ export function useAppSettings(params: UseAppSettingsParams) {
     if (saved && allValidLayouts.includes(saved as KeyboardLayoutId)) {
       return saved as KeyboardLayoutId;
     }
-    return detectKeyboardLayout() as KeyboardLayoutId;
+    return "fr-fr";
   });
 
   const [mode, setMode] = useState<"practice" | "beginner" | "custom">(() => {
@@ -107,13 +103,7 @@ export function useAppSettings(params: UseAppSettingsParams) {
     if (saved && VALID_LEARNING_LANGUAGES.includes(saved as LanguageCode)) {
       return saved as LanguageCode;
     }
-    const savedMode = getStorageItem("mode");
-    if (!savedMode || savedMode === "null" || savedMode === "") {
-      const randomLang =
-        VALID_LEARNING_LANGUAGES[Math.floor(Math.random() * VALID_LEARNING_LANGUAGES.length)];
-      return randomLang;
-    }
-    return detectLearningLanguage() as LanguageCode;
+    return "fr";
   });
 
   // Map mode to content type: beginner→words, practice→phrases, custom→custom
@@ -163,9 +153,15 @@ export function useAppSettings(params: UseAppSettingsParams) {
       if (saved && isValidInterfaceLanguage(saved)) {
         return saved;
       }
-      return detectInterfaceLanguage() as InterfaceLanguage;
+      return "fr";
     }
   );
+
+  const [helpMode, setHelpMode] = useState<KeyboardHelpMode>(() => {
+    const saved = getStorageItem('keyboardHelpMode');
+    return saved === 'confirm' || saved === 'mistakes-only' || saved === 'hidden' ? saved : 'guided';
+  });
+  useEffect(() => { setStorageItem('keyboardHelpMode', helpMode); }, [helpMode]);
 
   const [soundEnabled, setSoundEnabled] = useState(() => {
     const saved = getStorageItem("soundEnabled");
@@ -333,16 +329,6 @@ export function useAppSettings(params: UseAppSettingsParams) {
     setStorageItem("mode", mode);
   }, [mode]);
 
-  // Clear custom text from storage when switching away from custom mode
-  const prevModeRef = useRef<"practice" | "beginner" | "custom">(mode);
-  useEffect(() => {
-    // If switching away from custom mode, clear the stored custom text
-    if (prevModeRef.current === "custom" && mode !== "custom") {
-      removeStorageItem("customText");
-    }
-    prevModeRef.current = mode;
-  }, [mode]);
-
   useEffect(() => {
     setStorageItem("learningLanguage", learningLanguage);
   }, [learningLanguage]);
@@ -429,6 +415,7 @@ export function useAppSettings(params: UseAppSettingsParams) {
   }, [interfaceLanguage, learningLanguage, learningContentType]);
 
   return {
+    helpMode, setHelpMode,
     layoutId,
     setLayoutId,
     mode,

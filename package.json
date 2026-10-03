@@ -1,7 +1,7 @@
 {
   "name": "blind-typing-tutor",
   "version": "1.0.0",
-  "description": "A modern, feature-rich touch typing tutor application with support for 28+ keyboard layouts and 8 learning languages",
+  "description": "Apprentissage du clavier fran\u00e7ais AZERTY, local et sans t\u00e9l\u00e9m\u00e9trie",
   "type": "module",
   "author": {
     "name": "Stanislav Khatko",
@@ -10,11 +10,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stanislavkhatko/blind-typing-tutor.git"
+    "url": "https://github.com/mhjd/blind-typing-tutor.git"
   },
-  "homepage": "https://github.com/stanislavkhatko/blind-typing-tutor#readme",
+  "homepage": "https://github.com/mhjd/blind-typing-tutor",
   "bugs": {
-    "url": "https://github.com/stanislavkhatko/blind-typing-tutor/issues"
+    "url": "https://github.com/mhjd/blind-typing-tutor/issues"
   },
   "keywords": [
     "typing",
@@ -34,21 +34,20 @@
     "accessibility"
   ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "NEXT_TELEMETRY_DISABLED=1 next dev",
+    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
+    "start": "NEXT_TELEMETRY_DISABLED=1 next start",
     "lint": "eslint .",
     "clean": "rm -rf .next node_modules/.vite dist",
-    "deploy": "vercel --prod",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "lucide-react": "^0.554.0",
-    "next": "^15.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "next": "15.5.27",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -59,7 +58,6 @@
     "@types/react-dom": "^19.2.3",
     "autoprefixer": "^10.4.22",
     "eslint": "^9.39.1",
-    "eslint-config-next": "^15.1.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.5.0",
     "playwright": "^1.57.0",
@@ -68,5 +66,11 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "engines": {
+    "node": ">=22.0.0 <25"
+  },
+  "resolutions": {
+    "next/postcss": "^8.5.23"
+  }
 }

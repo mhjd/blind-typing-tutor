@@ -60,6 +60,7 @@ export const frFrLayout: KeyboardLayout = {
 
         // Row 4 - Bottom row
         { id: 'shift-l', primary: 'shift', width: 'shift' },
+        { id: 'intlBackslash', primary: '<', shifted: '>', group: 1 },
         { id: 'z', primary: 'w', shifted: 'W', group: 1 }, // W in AZERTY
         { id: 'x', primary: 'x', shifted: 'X', group: 2 },
         { id: 'c', primary: 'c', shifted: 'C', group: 3 },
