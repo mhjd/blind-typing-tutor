@@ -1,6 +1,6 @@
 # Validation de la variante AZERTY
 
-Révision applicative : `791ee763cfc39cff7ab51c9906dc0b4a46cad01e`.
+Révision applicative : `3b3a57703e1da9f5524c6b6555a8f25d7d174f1c`.
 
 Validation locale du 3 octobre 2026, à partir de la baseline `de164448e147c8926cd1e3ec44482793807d2364`, sans fusion upstream et sans déploiement.
 
@@ -9,8 +9,8 @@ Validation locale du 3 octobre 2026, à partir de la baseline `de164448e147c8926
 - Node **24.21.0**, Yarn **1.22.22**.
 - `yarn lint` : réussi, sans erreur.
 - `yarn build` : compilation, TypeScript et production réussis ; Next **15.5.27**, React **19.3.0**.
-- `PLAYWRIGHT_PRODUCTION=1 yarn test:e2e --project=chromium --project=firefox` : **184 tests réussis**, 92 par navigateur, contre `next start` et le build de production.
-- Chaque projet comprend 56 tests indépendants sur les plans de saisie et le contenu des exercices, et 36 tests navigateur, dont les 13 régressions existantes.
+- `PLAYWRIGHT_PRODUCTION=1 yarn test:e2e --project=chromium --project=firefox` : **192 tests réussis**, 96 par navigateur, contre `next start` et le build de production.
+- Chaque projet comprend 57 tests indépendants sur les plans de saisie et le contenu des exercices, et 39 tests navigateur, dont les 13 régressions existantes.
 - `yarn audit --json` : **0 info, 0 faible, 0 modérée, 0 élevée, 0 critique**, sur le graphe complet de 255 dépendances signalé par Yarn. Aucune vulnérabilité connue volontairement laissée. Ce résultat est daté, pas une garantie permanente.
 - `git diff --check` : propre.
 - Capture complète de l’interface française inspectée visuellement pendant la validation.
@@ -19,7 +19,7 @@ Validation locale du 3 octobre 2026, à partir de la baseline `de164448e147c8926
 
 Les plans français couvrent `é è à ç ù`, les dix chiffres avec Shift, `? . /`, espaces, majuscules, `@ # { [ | \\ ] } € ^ ¤`, ainsi que les accents isolés `~`, accent grave et tréma suivis d’Espace. Les séquences `â ê î ô û ä ë ï ö ü` et leurs majuscules sont vérifiées en NFC et NFD. Des mappings anglais et allemands sont également vérifiés.
 
-La bibliothèque comprend trois exercices : accents (é è à ù ç â ê î ô û ë), caractères courants avec répétitions de @, puis long texte varié. Elle exclut ä/ï/ö/ü, €/% et le point-virgule, tandis que leur support dans le moteur est conservé. Tous les caractères des exercices ont un plan physique français, et le texte long couvre tout l’alphabet. La navigation permet le choix direct et le conserve au rechargement ; la saisie libre reste accessible, les réglages et statistiques sont repliés.
+La bibliothèque comprend trois exercices : accents (é è à ù ç â ê î ô û ë), caractères courants avec répétitions de @, puis long texte varié. Elle exclut ä/ï/ö/ü, €/% et le point-virgule, tandis que leur support dans le moteur est conservé. Tous les caractères des exercices ont un plan physique français, et le texte long couvre tout l’alphabet. Les tests reproduisent également l’ancien exercice AltGr stocké dans le navigateur (sans identifiant, avec identifiant libre ou ancien identifiant) et vérifient son remplacement par la bibliothèque actuelle. Les autres textes libres restent conservés. La navigation permet le choix direct et le conserve au rechargement ; la saisie libre reste accessible, les réglages et statistiques sont repliés.
 
 Les tests navigateur vérifient les quatre aides avant tentative, après réussite et après erreur, la touche pressée, l’aide persistante avec correction, l’aide temporaire sans correction, la confirmation 350 ms, la frappe rapide sans perte, la répétition et les statistiques cumulées. Ils vérifient la bibliothèque, le collage libre, le texte contenant `<script>` rendu comme texte, les retours à la ligne, tabulations et espaces insécables français.
 

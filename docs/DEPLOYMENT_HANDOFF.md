@@ -7,7 +7,7 @@ Ce document décrit le produit à lancer. Aucune opération VPS, modification Do
 - Dépôt : https://github.com/mhjd/blind-typing-tutor
 - Branche : `feature/french-azerty-trainer`.
 - Baseline examinée : `de164448e147c8926cd1e3ec44482793807d2364`.
-- Révision applicative validée : `791ee763cfc39cff7ab51c9906dc0b4a46cad01e`. Le commit de documentation qui suit sur cette branche contient ce handoff ; le hash complet de tête à déployer est communiqué dans le compte rendu final.
+- Révision applicative validée : `3b3a57703e1da9f5524c6b6555a8f25d7d174f1c`. Le commit de documentation qui suit sur cette branche contient ce handoff ; le hash complet de tête à déployer est communiqué dans le compte rendu final.
 - Next.js 15.5.27, React 19.3.0. Aucune fusion de code upstream après baseline.
 
 ## Construction et lancement
