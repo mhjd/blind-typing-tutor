@@ -10,6 +10,10 @@ test.describe("Blind Typing Tutor E2E Tests", () => {
     // Firefox may need more time
     const timeout = browserName === "firefox" ? 30000 : 10000;
 
+    // Open secondary settings explicitly; the main screen stays focused on exercises.
+    await page.getByTestId('settings-panel').locator('summary').click();
+    await page.getByTestId('statistics-panel').locator('summary').click();
+
     // Wait for the app title to be visible
     await page.waitForSelector('[data-testid="app-title"]', {
       timeout,
@@ -426,51 +430,13 @@ test.describe("Blind Typing Tutor E2E Tests", () => {
     }
   });
   test("should allow canceling custom setup", async ({ page }) => {
-    // Wait for initial hydration to complete before interacting with dropdowns
-    await page.waitForFunction(() => localStorage.getItem("layoutId") !== null, {
-      timeout: 5000,
-    });
-
-    // Find learning mode dropdown
-    const modeDropdown = page.locator('[data-testid="learning-mode-selector"]');
-    await expect(modeDropdown).toBeVisible();
-
-    // Change to Custom mode
-    await modeDropdown.selectOption("custom");
-
-    // Wait for the custom text input to appear in the DOM
-    await page.waitForFunction(
-      () => {
-        const el = document.querySelector(
-          '[data-testid="custom-text-input"]'
-        ) as HTMLElement | null;
-        return el !== null && el.offsetParent !== null;
-      },
-      undefined,
-      { timeout: 15000 }
-    );
-
-    // Verify Custom Setup is displayed (check for textarea)
-    const textarea = page.locator('[data-testid="custom-text-input"]');
-    await expect(textarea).toBeVisible();
-
-    // Find and click Cancel button
-    const cancelButton = page.locator('button:has-text("Cancel")');
-    await expect(cancelButton).toBeVisible();
-    await cancelButton.click();
-
-    // Wait for the textarea to disappear and dropdown to revert
-    await page.waitForFunction(() => {
-      const el = document.querySelector('[data-testid="custom-text-input"]');
-      const select = document.querySelector('[data-testid="learning-mode-selector"]') as HTMLSelectElement;
-      return (!el || !el.offsetParent) && select && select.value === "practice";
-    }, { timeout: 5000 });
-
-    // Verify we are back in Practice mode
-    const selectedValue = await modeDropdown.inputValue();
-    expect(selectedValue).toBe("practice");
-
-    // Verify Custom Setup is gone
-    await expect(textarea).not.toBeVisible();
+    await page.getByTestId('learning-mode-selector').selectOption('custom');
+    await expect(page.getByTestId('exercise-selector')).toHaveValue('accents');
+    const originalText = await page.getByTestId('text-display').textContent();
+    await page.getByTestId('change-exercise').click();
+    await page.getByTestId('custom-text-input').fill('Un brouillon non validé');
+    await page.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await expect(page.getByTestId('custom-text-input')).not.toBeVisible();
+    await expect(page.getByTestId('text-display')).toHaveText(originalText!);
   });
 });

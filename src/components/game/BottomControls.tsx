@@ -74,65 +74,65 @@ export const BottomControls: React.FC<BottomControlsProps> = ({
         </div>
       )}
 
-      <div className="absolute top-0 right-0 flex gap-2 mb-2 z-10">
+      <div className="flex flex-wrap justify-center gap-3 mb-2">
         <button
-          data-testid="keyboard-toggle-button"
+          data-testid="keyboard-toggle-button" aria-label="Clavier visible"
           onClick={onToggleKeyboard}
-          className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors ${showKeyboard
+          className={`flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors ${showKeyboard
               ? "text-indigo-600 dark:text-indigo-400 bg-white/80 dark:bg-gray-800/80"
               : "text-gray-600 dark:text-gray-400 bg-white/60 dark:bg-gray-800/60"
             }`}
           title={translations.toggleKeyboard}
         >
-          <KeyboardIcon size={18} />
+          <KeyboardIcon size={18} /><span>Clavier</span>
         </button>
 
         <button
-          data-testid="hand-hints-toggle-button"
+          data-testid="hand-hints-toggle-button" aria-label="Mains"
           onClick={onToggleHands}
-          className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors ${showHands
+          className={`flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors ${showHands
               ? "text-indigo-600 dark:text-indigo-400 bg-white/80 dark:bg-gray-800/80"
               : "text-gray-600 dark:text-gray-400 bg-white/60 dark:bg-gray-800/60"
             }`}
           title={translations.toggleHands}
         >
-          <Hand size={18} />
+          <Hand size={18} /><span>Mains</span>
         </button>
 
         <button
-          data-testid="color-zones-toggle-button"
+          data-testid="color-zones-toggle-button" aria-label="Couleurs"
           onClick={onToggleColors}
-          className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors ${showColors
+          className={`flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors ${showColors
               ? "text-indigo-600 dark:text-indigo-400 bg-white/80 dark:bg-gray-800/80"
               : "text-gray-600 dark:text-gray-400 bg-white/60 dark:bg-gray-800/60"
             }`}
           title={translations.toggleColors}
         >
-          <Palette size={18} />
+          <Palette size={18} /><span>Couleurs</span>
         </button>
 
         <button
-          data-testid="correction-mode-toggle-button"
+          data-testid="correction-mode-toggle-button" aria-label="Corriger les erreurs"
           onClick={onToggleCorrection}
-          className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors ${correctionMode
+          className={`flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors ${correctionMode
               ? "text-green-600 dark:text-green-400 bg-white/80 dark:bg-gray-800/80"
               : "text-gray-600 dark:text-gray-400 bg-white/60 dark:bg-gray-800/60"
             }`}
           title={translations.toggleCorrection}
         >
-          <CheckCircle size={18} />
+          <CheckCircle size={18} /><span>Correction</span>
         </button>
 
         <button
-          data-testid="sound-toggle-button"
+          data-testid="sound-toggle-button" aria-label="Sons"
           onClick={onToggleSound}
-          className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors ${soundEnabled
+          className={`flex items-center gap-2 p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors ${soundEnabled
               ? "text-indigo-600 dark:text-indigo-400 bg-white/80 dark:bg-gray-800/80"
               : "text-gray-600 dark:text-gray-400 bg-white/60 dark:bg-gray-800/60"
             }`}
           title={soundEnabled ? translations.soundOn : translations.soundOff}
         >
-          {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+          {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}<span>Sons</span>
         </button>
       </div>
     </div>

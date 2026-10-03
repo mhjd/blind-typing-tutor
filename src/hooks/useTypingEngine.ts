@@ -3,6 +3,7 @@ import type React from 'react';
 import { Generator, type Language } from '../utils/Generator';
 import { soundManager } from '../utils/SoundManager';
 import { getStorageItem, setStorageItem } from '../utils/storage';
+import { exercises } from '../config/exercises';
 import { getLayout } from '../config/layouts';
 import type { KeyboardLayoutId } from '../types/keyboard';
 import { characterInputPlan, physicalKeyId, type CharacterInputPlan, type KeyboardHelpMode } from '../utils/inputPlan';
@@ -32,7 +33,8 @@ export function useTypingEngine({ mode, language, correctionMode, layoutId, help
   const [physicalStep, setPhysicalStep] = useState(0);
   const [customText, setCustomText] = useState('');
   const [isCustomSetup, setIsCustomSetup] = useState(false);
-  const previousMode = useRef(mode);
+  const pendingSetup = useRef(false);
+  const [exerciseId, setExerciseId] = useState('');
   const feedbackTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pressedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const generator = useMemo(() => new Generator(language), [language]);
@@ -57,10 +59,15 @@ export function useTypingEngine({ mode, language, correctionMode, layoutId, help
   /* eslint-disable react-hooks/set-state-in-effect -- initialize a new exercise */
   useEffect(() => {
     const saved = getStorageItem('customText') || '';
+    const savedId = getStorageItem('exerciseId');
+    const exercise = exercises.find(exercise => exercise.id === savedId);
+    const selectedId = exercise?.id ?? (saved.trim() && !savedId ? 'free' : savedId === 'free' && saved.trim() ? 'free' : exercises[0].id);
+    const initialText = selectedId === 'free' ? saved : (exercise ?? exercises[0]).text;
+    setExerciseId(selectedId);
     setCustomText(saved);
-    setIsCustomSetup(mode === 'custom' && (previousMode.current !== 'custom' || !saved.trim()));
-    previousMode.current = mode;
-    if (mode === 'custom') setText(saved.normalize('NFC'));
+    setIsCustomSetup(mode === 'custom' && pendingSetup.current);
+    pendingSetup.current = false;
+    if (mode === 'custom') setText(initialText.normalize('NFC'));
     generateText();
     setErrors(0);
     setTotalTyped(0);
@@ -195,12 +202,16 @@ export function useTypingEngine({ mode, language, correctionMode, layoutId, help
       processValue(input + text[input.length]);
     }
   };
-  const handleCustomSubmit = () => {
-    if (!customText.trim()) return;
-    const normalized = customText.replace(/\r\n?/g, '\n').normalize('NFC');
+  const openCustomSetup = () => {
+    pendingSetup.current = mode !== 'custom';
+    setIsCustomSetup(true);
+  };
+  const startText = (value: string, id: string) => {
+    const normalized = value.replace(/\r\n?/g, '\n').normalize('NFC');
+    pendingSetup.current = false;
     setText(normalized);
-    setCustomText(normalized);
-    setStorageItem('customText', normalized);
+    setExerciseId(id);
+    setStorageItem('exerciseId', id);
     setIsCustomSetup(false);
     setInput('');
     setErrors(0);
@@ -208,6 +219,16 @@ export function useTypingEngine({ mode, language, correctionMode, layoutId, help
     setStartTime(null);
     setWpm(0);
     clearFeedback();
+    inputRef.current?.focus();
+  };
+  const selectExercise = (id: string) => {
+    const exercise = exercises.find(exercise => exercise.id === id);
+    if (exercise) startText(exercise.text, id);
+  };
+  const handleCustomSubmit = () => {
+    if (!customText.trim()) return;
+    setStorageItem('customText', customText.replace(/\r\n?/g, '\n').normalize('NFC'));
+    startText(customText, 'free');
   };
 
   return {
@@ -215,7 +236,7 @@ export function useTypingEngine({ mode, language, correctionMode, layoutId, help
     accuracy: totalTyped ? Math.max(0, (totalTyped - errors) / totalTyped * 100) : 100,
     activeTarget, lastPressedKey, feedbackTarget,
     visibleTarget: helpMode === 'guided' ? activeTarget.slice(physicalStep, physicalStep + 1) : helpMode === 'hidden' ? [] : feedbackTarget,
-    customText, setCustomText, isCustomSetup, setIsCustomSetup,
+    openCustomSetup, exerciseId, selectExercise, customText, setCustomText, isCustomSetup, setIsCustomSetup,
     handleInput, handleKeyDown, handleCompositionStart, handleCompositionEnd, handleCustomSubmit,
   };
 }

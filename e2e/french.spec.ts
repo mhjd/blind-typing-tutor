@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { characterInputPlan, highlightedKeys, physicalKeyId } from '../src/utils/inputPlan';
 import { frFrLayout } from '../src/config/layouts/fr-fr';
+import { exercises } from '../src/config/exercises';
 import { getLayout } from '../src/config/layouts';
 
 const simple: Record<string, string> = { é: '2', è: '7', à: '0', ç: '9', ù: 'quote', ' ': 'space' };
@@ -161,14 +162,14 @@ test('sorties françaises, normalisation, répétition et réglages conservés',
 
 test('premier lancement français et bibliothèque avec texte libre', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveURL(/\/fr\/fr\/words$/);
+  await expect(page).toHaveURL(/\/fr\/fr\/custom$/);
   await expect(page.getByTestId('interface-language-selector')).toHaveValue('fr');
   await expect(page.getByTestId('keyboard-layout-selector')).toHaveValue('fr-fr');
   await expect(page.getByTestId('keyboard-help-selector')).toHaveValue('guided');
-  await page.getByTestId('learning-mode-selector').selectOption('custom');
-  await page.getByTestId('exercise-selector').selectOption('mixed');
-  await expect(page.getByTestId('custom-text-input')).toHaveValue(/Bonjour/);
-  await page.getByTestId('custom-start-button').click();
+  await expect(page.getByTestId('exercise-selector')).toHaveValue('accents');
+  await expect(page.getByTestId('exercise-selector').locator('option')).toHaveCount(3);
+  await expect(page.getByTestId('settings-panel')).not.toHaveAttribute('open', '');
+  await page.getByTestId('exercise-selector').selectOption('paragraph');
   await expect(page.getByTestId('text-display')).toContainText('Bonjour');
   await page.getByTestId('change-exercise').click();
   await page.getByTestId('custom-text-input').fill('Mon texte <script> reste du texte.');
@@ -191,6 +192,7 @@ test('aucun trafic tiers, aucun envoi du texte, headers et console', async ({ pa
   await page.keyboard.insertText('x');
   await page.keyboard.insertText('ç');
   for (const help of ['confirm', 'mistakes-only', 'hidden', 'guided']) await page.getByTestId('keyboard-help-selector').selectOption(help);
+  await page.getByTestId('settings-panel').locator('summary').click();
   await page.getByTestId('sound-toggle-button').click();
   await page.getByTestId('text-display').click();
   await page.keyboard.insertText(' @ î a');
@@ -281,4 +283,33 @@ test('scénario complet et entraînement sans réseau après chargement', async 
   await page.reload();
   await expect(page.getByTestId('keyboard-help-selector')).toHaveValue('hidden');
   await expect(page.getByTestId('text-display')).toHaveText('ç î @ ');
+});
+
+
+test('bibliothèque métier : trois exercices avec caractères accessibles', () => {
+  expect(exercises.map(exercise => exercise.id)).toEqual(['accents', 'special', 'paragraph']);
+  for (const exercise of exercises) {
+    expect(exercise.text).not.toMatch(/[äïöü€%;œ]/u);
+    for (const char of exercise.text) expect(characterInputPlan(char, frFrLayout).length, `Plan pour ${JSON.stringify(char)} dans ${exercise.id}`).toBeGreaterThan(0);
+  }
+  for (const char of 'éèàùçâêîôûë') expect(exercises[0].text).toContain(char);
+  for (const char of `@.,'"()-_!?:/+=`) expect(exercises[1].text).toContain(char);
+  expect(exercises[1].text.match(/@/g)!.length).toBeGreaterThanOrEqual(10);
+  expect(exercises[2].text.length).toBeGreaterThan(1000);
+  for (const char of 'abcdefghijklmnopqrstuvwxyz') expect(exercises[2].text.toLowerCase()).toContain(char);
+  expect(exercises[2].text.match(/@/g)!.length).toBeGreaterThanOrEqual(3);
+});
+
+test('choix direct, persistance et texte libre sans perdre l’exercice', async ({ page }) => {
+  await page.goto('/');
+  await page.getByTestId('exercise-selector').selectOption('special');
+  await expect(page.getByTestId('text-display')).toContainText('paul@exemple.fr');
+  await page.reload();
+  await expect(page.getByTestId('exercise-selector')).toHaveValue('special');
+  await page.getByTestId('change-exercise').click();
+  await page.getByTestId('custom-text-input').fill('Un brouillon');
+  await page.getByRole('button', { name: 'Annuler', exact: true }).click();
+  await expect(page.getByTestId('exercise-selector')).toHaveValue('special');
+  await page.getByTestId('exercise-selector').selectOption('paragraph');
+  await expect(page.getByTestId('text-display')).toContainText('Bonjour !');
 });

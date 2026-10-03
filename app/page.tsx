@@ -1,3 +1,3 @@
 import { redirect } from "next/navigation";
 
-export default function RootPage() { redirect("/fr/fr/words"); }
+export default function RootPage() { redirect("/fr/fr/custom"); }

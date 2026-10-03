@@ -3,37 +3,22 @@
 import React from "react";
 import {
   Keyboard as KeyboardIcon,
-  Languages,
-  ChevronDown,
   Moon,
   Sun,
 } from "lucide-react";
-import type { InterfaceLanguage } from "../../translations";
 
 interface HeaderProps {
   title: string;
-  interfaceLanguageLabel: string;
   lightMode: string;
   darkMode: string;
-  interfaceLanguage: InterfaceLanguage;
-  setInterfaceLanguage: (lang: InterfaceLanguage) => void;
-  interfaceLanguageOptions: Array<{
-    code: InterfaceLanguage;
-    name: string;
-    flag: string;
-  }>;
   isDarkMode: boolean;
   setDarkMode: (dark: boolean) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
   title,
-  interfaceLanguageLabel,
   lightMode,
   darkMode: darkModeLabel,
-  interfaceLanguage,
-  setInterfaceLanguage,
-  interfaceLanguageOptions,
   isDarkMode,
   setDarkMode,
 }) => {
@@ -51,32 +36,6 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="relative group">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-700 dark:text-gray-300">
-              <Languages size={18} />
-            </div>
-            <select
-              data-testid="interface-language-selector"
-              value={interfaceLanguage}
-              onChange={(e) =>
-                setInterfaceLanguage(e.target.value as InterfaceLanguage)
-              }
-              className="appearance-none bg-gray-100 dark:bg-gray-700 border-none text-gray-900 dark:text-white py-1.5 pl-10 pr-8 rounded-lg cursor-pointer focus:ring-2 focus:ring-indigo-500 focus:outline-none text-sm font-medium transition-colors"
-              title={interfaceLanguageLabel}
-            >
-              {interfaceLanguageOptions.map((lang) => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.flag} {lang.name}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700 dark:text-gray-300">
-              <ChevronDown size={14} />
-            </div>
-
-
-          </div>
-
           <button
             data-testid="theme-toggle-button"
             onClick={() => setDarkMode(!isDarkMode)}

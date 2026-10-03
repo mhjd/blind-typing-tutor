@@ -4,13 +4,13 @@ Variante de [Blind Typing Tutor](https://github.com/stanhatk/blind-typing-tutor)
 
 ## Utilisation
 
-L’ouverture de `/` mène à `/fr/fr/words` : interface française, disposition **Français (AZERTY)**, clavier visible et aide **Guidé** au premier lancement. Les autres langues et dispositions restent disponibles. Choisissez la disposition correspondant au clavier physique de votre ordinateur : l’application ne change pas le clavier configuré dans votre système.
+L’ouverture de `/` mène à `/fr/fr/custom` : interface française, disposition **Français (AZERTY)**, clavier visible et aide **Guidé** au premier lancement. Les autres langues et dispositions restent disponibles. Choisissez la disposition correspondant au clavier physique de votre ordinateur : l’application ne change pas le clavier configuré dans votre système.
 
 - **Débutant** : un mot à la fois.
 - **Pratique** : une suite de mots.
-- **Personnalisé** : bibliothèque d’exercices français ou n’importe quel texte saisi/collé. Cliquez sur « Changer d’exercice ou de texte » pour le modifier.
+- **Personnalisé** : bibliothèque d’exercices français ou n’importe quel texte saisi/collé. Cliquez sur « Saisir mon texte » pour le modifier.
 
-La bibliothèque couvre les lettres, AZERTY, accents, ponctuation, chiffres, Maj, AltGr, circonflexes, trémas et pangrammes. Elle est directement modifiable dans [`src/config/exercises.ts`](src/config/exercises.ts). Le texte se répète automatiquement à la fin, sans menu. Les statistiques restent cumulées pendant l’entraînement, puis repartent à zéro lors d’un changement d’exercice ou de mode.
+L’écran principal propose trois exercices, directement sélectionnables : accents/circonflexes/cédille et le ë de Noël, caractères courants avec une attention particulière à @, puis long texte varié avec toutes les lettres et une révision générale. Le niveau d’aide reste visible. Le bouton « Saisir mon texte » permet de coller un texte libre, tandis que les modes historiques, les langues, les dispositions et les options secondaires restent dans « Réglages ». Les statistiques se trouvent dans un volet séparé. Les exercices ne contiennent ni ä/ï/ö/ü, ni €/% ni point-virgule. Le moteur conserve le support de ces caractères pour les textes libres. Elle est directement modifiable dans [`src/config/exercises.ts`](src/config/exercises.ts). Le texte se répète automatiquement à la fin, sans menu. Les statistiques restent cumulées pendant l’entraînement, puis repartent à zéro lors d’un changement d’exercice ou de mode.
 
 Les quatre aides sont mémorisées dans le navigateur :
 
@@ -29,7 +29,7 @@ Cliquez sur le texte à taper pour reprendre la frappe après avoir utilisé un 
 
 ## Vie privée
 
-Le texte personnalisé et les préférences sont conservés uniquement dans `localStorage`, pour cette origine et ce navigateur. Aucune donnée de frappe, statistique ou texte n’est envoyée au serveur ou à un tiers. Les statistiques sont en mémoire, sans historique serveur. Effacer les données du site efface les préférences et le texte. Si le stockage navigateur est indisponible, l’entraînement reste utilisable mais la persistance ne peut pas être garantie.
+Le choix d’exercice, le texte personnalisé et les préférences sont conservés uniquement dans `localStorage`, pour cette origine et ce navigateur. Aucune donnée de frappe, statistique ou texte n’est envoyée au serveur ou à un tiers. Les statistiques sont en mémoire, sans historique serveur. Effacer les données du site efface les préférences et le texte. Si le stockage navigateur est indisponible, l’entraînement reste utilisable mais la persistance ne peut pas être garantie.
 
 Aucun Analytics, Google Fonts ou autre service de télémétrie. Polices système uniquement. Les scripts Yarn désactivent aussi la télémétrie de l’outil Next.js. L’utilisation normale peut continuer sans réseau une fois les ressources de la page chargées ; recharger ou changer de route nécessite le serveur. Il n’y a pas de service worker ni de garantie d’installation hors ligne.
 

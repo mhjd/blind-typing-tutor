@@ -71,18 +71,20 @@ export function AppContent({ params }: AppContentProps) {
     >
       <Header
         title={t.title}
-        interfaceLanguageLabel={t.interfaceLanguage}
         lightMode={t.lightMode}
         darkMode={t.darkMode}
-        interfaceLanguage={settings.interfaceLanguage}
-        setInterfaceLanguage={settings.setInterfaceLanguage}
-        interfaceLanguageOptions={INTERFACE_LANGUAGE_OPTIONS}
         isDarkMode={settings.darkMode}
         setDarkMode={settings.setDarkMode}
       />
 
       <main className="grow pt-20">
         <Game
+          settingsContent={<label className="flex flex-wrap gap-3 items-center justify-center">
+            {t.interfaceLanguage}
+            <select data-testid="interface-language-selector" value={settings.interfaceLanguage} onChange={event => settings.setInterfaceLanguage(event.target.value as typeof settings.interfaceLanguage)} className="p-3 border-2 rounded-lg bg-white dark:bg-gray-800">
+              {INTERFACE_LANGUAGE_OPTIONS.map(language => <option key={language.code} value={language.code}>{language.flag} {language.name}</option>)}
+            </select>
+          </label>}
           helpMode={settings.helpMode}
           setHelpMode={settings.setHelpMode}
           mode={settings.mode}

@@ -2,7 +2,6 @@
 
 import { TranslationKeys } from "@/translations";
 import React from "react";
-import { exercises } from "@/config/exercises";
 
 interface CustomSetupProps {
   customText: string;
@@ -23,18 +22,8 @@ export const CustomSetup: React.FC<CustomSetupProps> = ({
     <div className="flex flex-col items-center bg-transparent p-4">
       <div className="w-full max-w-2xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-lg shadow-xl p-8 mb-8 flex flex-col gap-4 transition-colors">
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          {translations.custom}
+          Mon texte
         </h2>
-        <label className="text-lg text-gray-900 dark:text-white">
-          Choisir un exercice ou écrire votre texte
-          <select data-testid="exercise-selector" className="w-full p-3 mt-2 border-2 rounded bg-white dark:bg-gray-700" defaultValue="" onChange={event => {
-            const exercise = exercises.find(exercise => exercise.id === event.target.value);
-            if (exercise) setCustomText(exercise.text);
-          }}>
-            <option value="">Texte libre</option>
-            {exercises.map(exercise => <option key={exercise.id} value={exercise.id}>{exercise.category} — {exercise.title}</option>)}
-          </select>
-        </label>
         <p className="text-gray-700 dark:text-gray-300">Tapez à votre rythme. Pour un accent circonflexe ou un tréma, tapez l’accent puis la lettre. Le texte se répète automatiquement. Votre texte reste dans ce navigateur.</p>
         <textarea
           data-testid="custom-text-input"
