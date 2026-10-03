@@ -4,7 +4,7 @@
 
 Touch typing tutor built with **Next.js 15 (App Router)**, **React 19**, **TypeScript**, **Tailwind CSS v4**. Supports 29 interface languages, 28+ keyboard layouts, and 29 learning languages.
 
-**Live**: https://blind-typing-tutor.wordmemo.net  
+**Fork**: https://github.com/mhjd/blind-typing-tutor
 **Package manager**: yarn classic 1.22.22
 
 ## Commands
@@ -13,7 +13,6 @@ Touch typing tutor built with **Next.js 15 (App Router)**, **React 19**, **TypeS
 yarn dev          # Start Next.js dev server (port 3000)
 yarn build        # Production build (also serves as typecheck)
 yarn lint         # ESLint (flat config, eslint.config.js)
-yarn deploy       # Deploy to Vercel
 yarn test:e2e     # Playwright E2E tests
 yarn test:e2e:ui  # Playwright interactive UI mode
 ```
@@ -30,18 +29,20 @@ Dynamic route: `/[interfaceLang]/[studyLang]/[learningMode]`
 - `studyLang` — language to practice typing (en, de, ar, ...)
 - `learningMode` — `words`, `phrases`, or `custom`
 
-Root `/` redirects to `/{browser-lang}/{browser-lang}/words`.
+Root `/` redirects to `/fr/fr/words`. New users start with fr-fr AZERTY and guided keyboard help.
 
 ### Key files
 
 | Path | Purpose |
 |------|---------|
-| `app/layout.tsx` | Root layout, dark mode flicker prevention, font loading |
+| `app/layout.tsx` | Root layout, dark mode flicker prevention, system fonts |
 | `app/page.tsx` | Root redirect (detects Accept-Language) |
 | `app/[interfaceLang]/page.tsx` | Interface language homepage |
-| `app/[interfaceLang]/[studyLang]/[learningMode]/page.tsx` | Main app route with `generateStaticParams` |
+| `app/[interfaceLang]/[studyLang]/[learningMode]/page.tsx` | Route validation and metadata |
+| `app/[interfaceLang]/[studyLang]/layout.tsx` | Keeps the game mounted across mode changes |
 | `app/[interfaceLang]/[studyLang]/[learningMode]/AppContent.tsx` | Client component — the actual app |
-| `app/[interfaceLang]/[studyLang]/[learningMode]/SEOContent.tsx` | SEO text per mode |
+| `src/config/exercises.ts` | Editable French exercise library |
+| `src/utils/inputPlan.ts` | Character output → physical keystroke plan |
 | `src/components/Game.tsx` | Core typing game component |
 | `src/components/Keyboard.tsx` | Virtual keyboard display |
 | `src/hooks/useAppSettings.ts` | All app state + localStorage + URL sync |
@@ -63,7 +64,6 @@ Tailwind CSS v4 via `@tailwindcss/postcss`. Dark mode uses class selector (`.dar
 
 ### Stale files — do not use
 
-- **`README.md`** is outdated — references Vite, port 5173, `npm` commands. Trust `package.json` scripts.
 - **`src/index.css`**, **`src/App.css`** — legacy Vite artifacts, not used by Next.js. Use `app/globals.css`.
 - **`tailwind.config.js`** — references `./index.html` (Vite convention). Actual Tailwind config is via `@tailwindcss/postcss` in `postcss.config.js`.
 - **`legacy_v1/`** — old webpack-based version, ignore entirely.
@@ -88,17 +88,18 @@ Tailwind CSS v4 via `@tailwindcss/postcss`. Dark mode uses class selector (`.dar
 - Type `KeyboardLayoutId` in `src/types/keyboard.ts` — must be updated for new layouts
 - `POPULAR_LAYOUT_IDS` in `src/config/constants.ts` controls dropdown order
 
-### SEO
+### Privacy and private-instance metadata
 
-- Metadata generated in `src/utils/metadata.ts`
-- Sitemap in `app/sitemap.ts` — generates all language/mode combos
-- `SEOContent.tsx` has mode-specific visible text for search engines
-- **Keyword targeting**: Same-language pages (`/en/en/*`, `/ru/ru/*`) use `seoBlindTypingTitle`/`seoBlindTypingDescription` which contain high-value "blind typing" keywords. Cross-language pages use `seoTitleWords`/`seoTitlePhrases`/`seoTitleCustom` templates with `{lang}` placeholder.
+No Analytics, third-party fonts, server user storage or secrets. Custom text and preferences stay in browser localStorage. Metadata has no upstream canonical URLs; robots/noindex disable indexing. Preserve these properties. Do not deploy to a VPS or modify deployment Docker/infrastructure. See docs/DEPLOYMENT_HANDOFF.md.
+
+### Typing engine
+
+Final character output is separate from physical key plans. Dead keydown uses code and advances physical steps only; input/composition final output owns character validation. Modifier/dead presses do not count as errors. Normalize NFC. KeyboardHelpMode persists as keyboardHelpMode. Keep activeTarget, lastPressedKey and feedbackTarget distinct.
 
 ### E2E tests
 
-- Playwright tests in `e2e/app.spec.ts`
-- Tests auto-start dev server via `webServer` config
+- Playwright tests in `e2e/app.spec.ts` and `e2e/french.spec.ts`
+- Tests auto-start dev server via `webServer` config; set `PLAYWRIGHT_PRODUCTION=1` to test a completed production build
 - Firefox gets longer timeouts (30s vs 10s)
 - Tests use `[data-testid="..."]` selectors
 - Run specific browser: `npx playwright test --project=chromium`
@@ -115,4 +116,4 @@ After making changes, run:
 ```bash
 yarn lint && yarn build
 ```
-This covers both lint and typecheck. No unit test suite exists.
+This covers both lint and typecheck. Pure input-plan assertions run in the Playwright suite alongside browser tests. Also run Chromium and, if available, Firefox against the production build and yarn audit.

@@ -1,280 +1,68 @@
-# Blind Typing Tutor ⌨️
+# Apprendre le clavier
 
-<div align="center">
+Variante de [Blind Typing Tutor](https://github.com/stanhatk/blind-typing-tutor), destinée en priorité aux débutants francophones sur clavier français AZERTY. Apprenez les positions des touches à votre rythme, sans objectif de vitesse, compte ni télémétrie.
 
-![Blind Typing Tutor](https://img.shields.io/badge/Blind%20Typing%20Tutor-v1.0.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)
-![React](https://img.shields.io/badge/React-19.2-blue)
-![Vite](https://img.shields.io/badge/Vite-7.2-purple)
+## Utilisation
 
-A modern, feature-rich touch typing tutor application built with React and TypeScript. Master keyboard typing with real-time feedback, multiple keyboard layouts, and comprehensive statistics.
+L’ouverture de `/` mène à `/fr/fr/words` : interface française, disposition **Français (AZERTY)**, clavier visible et aide **Guidé** au premier lancement. Les autres langues et dispositions restent disponibles. Choisissez la disposition correspondant au clavier physique de votre ordinateur : l’application ne change pas le clavier configuré dans votre système.
 
-[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Contributing](#-contributing) • [License](#-license)
+- **Débutant** : un mot à la fois.
+- **Pratique** : une suite de mots.
+- **Personnalisé** : bibliothèque d’exercices français ou n’importe quel texte saisi/collé. Cliquez sur « Changer d’exercice ou de texte » pour le modifier.
 
-</div>
+La bibliothèque couvre les lettres, AZERTY, accents, ponctuation, chiffres, Maj, AltGr, circonflexes, trémas et pangrammes. Elle est directement modifiable dans [`src/config/exercises.ts`](src/config/exercises.ts). Le texte se répète automatiquement à la fin, sans menu. Les statistiques restent cumulées pendant l’entraînement, puis repartent à zéro lors d’un changement d’exercice ou de mode.
 
-## 📖 About
+Les quatre aides sont mémorisées dans le navigateur :
 
-Blind Typing Tutor is a free, open-source web application designed to help users learn and improve their touch typing skills. The application supports 28+ keyboard layouts, 8 learning languages, and 29 interface languages, making it accessible to users worldwide.
+| Aide | Avant la frappe | Après réussite | Après erreur |
+| --- | --- | --- | --- |
+| Guidé | Touche et modificateurs indiqués | Prochaine étape | Cible conservée |
+| Confirmation | Aucune réponse | Combinaison réussie révélée 350 ms | Touche pressée et bonne combinaison |
+| Erreurs seulement | Aucune réponse | Aucune réponse | Bonne combinaison |
+| Sans aide | Aucune réponse | Aucune réponse | Aucune réponse |
 
-### Why Blind Typing Tutor?
+Avec la correction activée, une erreur ne fait pas avancer le texte ; l’aide après erreur reste jusqu’à la réussite. Sans correction, une erreur fait avancer et l’aide disparaît après 350 ms. Les modificateurs et les touches mortes ne sont pas des tentatives de caractère à eux seuls.
 
-- **Free & Open Source** - No ads, no tracking, completely free
-- **Multi-Language Support** - Learn typing in 8 languages with 29 interface languages
-- **Multiple Keyboard Layouts** - Support for QWERTY, QWERTZ, AZERTY, and more
-- **Real-Time Feedback** - Instant visual and audio feedback on your typing
-- **Comprehensive Statistics** - Track WPM, accuracy, and errors
-- **Modern UI** - Beautiful, responsive design with dark mode support
-- **Accessible** - Works on all modern browsers, no installation required
+**Maj (Shift)** : le clavier indique la touche et le Shift opposé à la main utilisée. **AltGr** : par exemple `@` indique AltGr et la touche `à`. **Touches mortes** : pour `î`, tapez `^`, relâchez, puis `i` ; pour `ë`, tapez Maj + `^` (tréma), relâchez, puis `e`. Pour un `~` ou un accent grave isolé, tapez AltGr + la touche indiquée puis Espace. Les majuscules composées sont aussi prises en charge. Les textes et sorties sont normalisés en NFC.
 
-## ✨ Features
+Cliquez sur le texte à taper pour reprendre la frappe après avoir utilisé un contrôle. Les thèmes, sons locaux, couleurs, mains, affichage du clavier et correction restent disponibles.
 
-### 🎯 Core Features
+## Vie privée
 
-- **Three Learning Modes**
-  - Practice Mode - Random words for continuous practice
-  - Beginner Mode - Repeated words for muscle memory
-  - Custom Mode - Practice with your own text
+Le texte personnalisé et les préférences sont conservés uniquement dans `localStorage`, pour cette origine et ce navigateur. Aucune donnée de frappe, statistique ou texte n’est envoyée au serveur ou à un tiers. Les statistiques sont en mémoire, sans historique serveur. Effacer les données du site efface les préférences et le texte. Si le stockage navigateur est indisponible, l’entraînement reste utilisable mais la persistance ne peut pas être garantie.
 
-- **Real-Time Statistics**
-  - Words Per Minute (WPM) tracking
-  - Accuracy percentage
-  - Error count and highlighting
+Aucun Analytics, Google Fonts ou autre service de télémétrie. Polices système uniquement. Les scripts Yarn désactivent aussi la télémétrie de l’outil Next.js. L’utilisation normale peut continuer sans réseau une fois les ressources de la page chargées ; recharger ou changer de route nécessite le serveur. Il n’y a pas de service worker ni de garantie d’installation hors ligne.
 
-- **Visual Keyboard**
-  - Interactive keyboard visualization
-  - Color-coded finger zones
-  - Hand hints for proper finger placement
-  - Active key highlighting
+## Développement et production locale
 
-- **Audio Feedback**
-  - Keyboard click sounds
-  - Error sound alerts
-  - Toggleable audio controls
+Node **24 LTS** recommandé (versions 22 à 24 acceptées), **Yarn classic 1.22.22**. `yarn.lock` est la seule source de vérité du projet actif. `legacy_v1/` est une archive non utilisée, dont les artefacts ne participent pas à l’installation ou au build.
 
-### 🌍 Internationalization
-
-- **28+ Keyboard Layouts** including:
-  - English (US, UK)
-  - German (QWERTZ)
-  - French (AZERTY)
-  - Spanish, Portuguese, Italian
-  - Russian, Ukrainian (Cyrillic)
-  - Turkish, Arabic, Hebrew
-  - Japanese, Korean, Chinese
-  - And many more...
-
-- **8 Learning Languages** with word lists:
-  - English, Ukrainian, Turkish
-  - German, French, Spanish
-  - Portuguese, Russian
-
-- **29 Interface Languages** for UI localization
-
-### 🎨 User Experience
-
-- Dark/Light mode toggle
-- Responsive design (mobile-friendly)
-- Auto-advance to next phrase
-- Correction mode (prevents typing errors)
-- Customizable settings
-- Persistent preferences (localStorage)
-
-## 🚀 Installation
-
-### Prerequisites
-
-- Node.js 18+ and npm/pnpm/yarn
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-
-### Quick Start
-
-1. **Clone the repository**
-
-   ```bash
-   git clone https://github.com/stanislavkhatko/blind-typing-tutor.git
-   cd blind-typing-tutor
-   ```
-
-2. **Install dependencies**
-
-   ```bash
-   npm install
-   # or
-   pnpm install
-   # or
-   yarn install
-   ```
-
-3. **Start development server**
-
-   ```bash
-   npm run dev
-   ```
-
-4. **Open in browser**
-
-   ```
-   http://localhost:5173
-   ```
-
-### Build for Production
-
-```bash
-# Build the project
-npm run build
-
-# Preview production build
-npm run preview
+```sh
+yarn install --frozen-lockfile
+yarn dev                 # http://localhost:3000
+yarn lint
+yarn build               # inclut TypeScript
+yarn start               # build de production, port 3000
 ```
 
-## 📚 Usage
-
-### Basic Usage
-
-1. **Select your keyboard layout** from the dropdown in the header
-2. **Choose learning mode** (Practice, Beginner, or Custom)
-3. **Select learning language** for the content you want to practice
-4. **Start typing** - the app will track your progress automatically
-5. **Review statistics** - WPM, accuracy, and errors are displayed in real-time
-
-### Advanced Features
-
-- **Toggle Keyboard Visibility** - Show/hide the visual keyboard
-- **Hand Hints** - Display which hand should type each key
-- **Color Zones** - Visual color coding for finger zones
-- **Correction Mode** - Prevents advancing until you type correctly
-- **Sound Feedback** - Enable/disable typing sounds
-- **Custom Text** - Practice with your own text in Custom mode
-
-### Keyboard Shortcuts
-
-- Type directly to start practicing
-- The input field auto-focuses for immediate typing
-
-## 🧪 Testing
-
-### Run E2E Tests
-
-```bash
-# Run all tests
-npm run test:e2e
-
-# Run tests in UI mode (interactive)
-npm run test:e2e:ui
-
-# Run tests in headed mode (see browser)
-npm run test:e2e:headed
-
-# Run tests for specific browser
-npx playwright test --project=chromium
+```sh
+yarn playwright install chromium firefox
+yarn test:e2e --project=chromium
+PLAYWRIGHT_PRODUCTION=1 yarn test:e2e --project=chromium
+PLAYWRIGHT_PRODUCTION=1 yarn test:e2e --project=firefox
+yarn audit
 ```
 
-### Install Playwright Browsers
+Les tests incluent les régressions upstream, les plans physiques français, les quatre aides, les événements Dead/composition, NFC, les modificateurs, la répétition, la persistance, les headers et l’absence de trafic tiers. L’automatisation simule le contrat des événements de composition ; elle ne change pas la disposition OS. Une vérification manuelle avec un clavier AZERTY réel reste utile, notamment pour les variantes de système/navigateur. L’enseignement détaillé des séquences de touches mortes cible `fr-fr` ; les autres dispositions conservent leurs mappings explicites, sans généralisation des règles françaises.
 
-If tests fail due to missing browsers:
+## Architecture
 
-```bash
-npx playwright install
-```
+Next.js 15 App Router, React 19, TypeScript et Tailwind 4. Aucun backend métier, base de données, compte ni secret. Le moteur se trouve dans `src/hooks/useTypingEngine.ts` ; les plans caractère → touches dans `src/utils/inputPlan.ts` ; le clavier dans `src/components/Keyboard.tsx` ; les préférences dans `src/hooks/useAppSettings.ts`.
 
-## 🛠️ Development
+Le SEO public upstream, ses évaluations artificielles, son sitemap, ses URL canoniques, l’écran promotionnel et les liens WordMemo/Buy Me a Coffee ont été retirés. Les pages portent `noindex` et `robots.txt` interdit l’exploration. Ce n’est pas un contrôle d’accès : la protection d’une instance privée relève de son administrateur.
 
-### Project Structure
+Voir le [handoff administrateur](docs/DEPLOYMENT_HANDOFF.md) et le [rapport de validation](docs/VALIDATION.md). Ce dépôt ne déploie pas automatiquement cette variante.
 
-```
-blind-typing-tutor/
-├── src/
-│   ├── components/       # React components
-│   │   ├── Game.tsx     # Main game component
-│   │   ├── Keyboard.tsx # Keyboard visualization
-│   │   ├── Stats.tsx    # Statistics display
-│   │   └── ErrorBoundary.tsx
-│   ├── config/
-│   │   └── layouts/     # Keyboard layout definitions
-│   ├── utils/           # Utility functions
-│   │   ├── Generator.ts # Text generation
-│   │   ├── SoundManager.ts
-│   │   ├── translations.ts
-│   │   └── ...
-│   ├── types/           # TypeScript type definitions
-│   └── App.tsx          # Main app component
-├── e2e/                 # End-to-end tests
-├── public/              # Static assets
-└── dist/                # Build output
-```
+## Licence et attribution
 
-### Tech Stack
-
-- **React 19.2** - UI framework
-- **TypeScript 5.9** - Type safety
-- **Vite 7.2** - Build tool and dev server
-- **Tailwind CSS 4** - Styling
-- **Playwright** - E2E testing
-- **Lucide React** - Icons
-
-### Code Quality
-
-```bash
-# Lint code
-npm run lint
-
-# Type check
-npm run build
-```
-
-## 🤝 Contributing
-
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
-
-### Quick Contribution Guide
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Built with [React](https://react.dev/) and [Vite](https://vitejs.dev/)
-- Icons by [Lucide](https://lucide.dev/)
-- Styling with [Tailwind CSS](https://tailwindcss.com/)
-
-## 📊 Project Status
-
-![GitHub stars](https://img.shields.io/github/stars/stanislavkhatko/blind-typing-tutor?style=social)
-![GitHub forks](https://img.shields.io/github/forks/stanislavkhatko/blind-typing-tutor?style=social)
-![GitHub issues](https://img.shields.io/github/issues/stanislavkhatko/blind-typing-tutor)
-![GitHub pull requests](https://img.shields.io/github/issues-pr/stanislavkhatko/blind-typing-tutor)
-
-## 🔗 Links
-
-- **Live Demo**: [https://blind-typing-tutor.wordmemo.net/](https://blind-typing-tutor.wordmemo.net/)
-- **Issues**: [GitHub Issues](https://github.com/stanislavkhatko/blind-typing-tutor/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/stanislavkhatko/blind-typing-tutor/discussions)
-
-## 💬 Support
-
-If you find this project helpful, consider:
-
-- ⭐ Starring the repository
-- 🐛 Reporting bugs
-- 💡 Suggesting features
-- 📖 Improving documentation
-- ☕ [Buying me a coffee](https://buymeacoffee.com/stanislavkhatko)
-
----
-
-<div align="center">
-
-Made with ❤️ by [Stanislav Khatko](https://github.com/stanislavkhatko)
-
-[⬆ Back to Top](#blind-typing-tutor-)
-
-</div>
+MIT, voir [LICENSE](LICENSE). Projet original : Stanislav Khatko ; les notices de copyright originales sont conservées. Fork : <https://github.com/mhjd/blind-typing-tutor>.
