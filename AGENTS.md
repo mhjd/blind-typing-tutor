@@ -29,7 +29,7 @@ Dynamic route: `/[interfaceLang]/[studyLang]/[learningMode]`
 - `studyLang` — language to practice typing (en, de, ar, ...)
 - `learningMode` — `words`, `phrases`, or `custom`
 
-Root `/` redirects to `/fr/fr/custom`. New users start with fr-fr AZERTY, the accents exercise and guided keyboard help. The primary navigation shows three exercises and the help selector; legacy modes, languages and keyboard options are in the collapsed settings panel.
+Root `/` redirects to `/fr/fr/custom`. New users start with fr-fr AZERTY, the accents exercise and guided keyboard help. The primary navigation shows four exercises and the help selector; legacy modes, languages and keyboard options are in the collapsed settings panel.
 
 ### Key files
 

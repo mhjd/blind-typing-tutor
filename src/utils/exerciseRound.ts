@@ -1,4 +1,4 @@
-import { exercises } from '../config/exercises';
+import { exercises, focusedCharacters } from '../config/exercises';
 import { accentWords, accentSentences, firstNames, lastNames, mailboxes, people, places, objects, observations, paragraphOpenings, paragraphClosings } from '../config/exerciseContent';
 
 type RandomSource = () => number;
@@ -43,6 +43,10 @@ export function createExerciseRound(id: string, previousStart: string | null = n
     for (let index = 0; index < 160; index++) {
       units.push(Array.from({ length: 12 }, () => pick(accentWords, random)).join(' '));
       units.push(pick(accentSentences, random));
+    }
+  } else if (exercise.id === 'focused') {
+    for (let index = 0; index < 500; index++) {
+      units.push(shuffle([...focusedCharacters, '@', '@', '@'], random).join(' '));
     }
   } else if (exercise.id === 'special') {
     const signs = ['.', ',', "'", '"', '(', ')', '-', '_', '!', '?', ':', '/', '+', '='];

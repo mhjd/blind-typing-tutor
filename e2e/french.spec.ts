@@ -169,7 +169,7 @@ test('premier lancement français et bibliothèque avec texte libre', async ({ p
   await expect(page.getByTestId('keyboard-layout-selector')).toHaveValue('fr-fr');
   await expect(page.getByTestId('keyboard-help-selector')).toHaveValue('guided');
   await expect(page.getByTestId('exercise-selector')).toHaveValue('accents');
-  await expect(page.getByTestId('exercise-selector').locator('option')).toHaveCount(3);
+  await expect(page.getByTestId('exercise-selector').locator('option')).toHaveCount(exercises.length);
   await expect(page.getByTestId('settings-panel')).not.toHaveAttribute('open', '');
   await page.getByTestId('exercise-selector').selectOption('paragraph');
   await expect(page.getByTestId('text-display')).not.toHaveText('');
@@ -289,8 +289,8 @@ test('scénario complet et entraînement sans réseau après chargement', async 
 });
 
 
-test('bibliothèque métier : trois exercices avec caractères accessibles', () => {
-  expect(exercises.map(exercise => exercise.id)).toEqual(['accents', 'special', 'paragraph']);
+test('bibliothèque métier : quatre exercices avec caractères accessibles', () => {
+  expect(exercises.map(exercise => exercise.id)).toEqual(['accents', 'special', 'paragraph', 'focused']);
   for (const exercise of exercises) {
     expect(exercise.text).not.toMatch(/[äïöü€%;œ]/u);
     for (const char of exercise.text) expect(characterInputPlan(char, frFrLayout).length, `Plan pour ${JSON.stringify(char)} dans ${exercise.id}`).toBeGreaterThan(0);
@@ -361,6 +361,14 @@ for (const exercise of exercises) test(`grands tours variés et début différen
     }
     for (const char of new Set(round.text)) expect(characterInputPlan(char, frFrLayout).length).toBeGreaterThan(0);
   }
+  if (exercise.id === 'focused') {
+    const allowed = new Set(`éèàùçâêîôûë@.,'"()-_!?:/+= \n`);
+    for (const round of [first, second, fresh]) {
+      for (const char of new Set(round.text)) expect(allowed.has(char)).toBe(true);
+      for (const char of allowed) expect(round.text).toContain(char);
+      expect(round.text.match(/@/g)!.length).toBeGreaterThan(1500);
+    }
+  }
   if (exercise.id === 'special') expect(first.text.match(/@/g)!.length).toBeGreaterThan(500);
   if (exercise.id === 'paragraph') for (const char of 'abcdefghijklmnopqrstuvwxyz') expect(first.text.toLowerCase()).toContain(char);
 });
@@ -406,5 +414,24 @@ test('fin d’un grand tour : renouvellement sans interruption ni remise à zér
   await expect(display).toHaveAttribute('data-exercise-length', /^\d{5,}$/);
   await page.keyboard.insertText((await display.locator('[data-current="true"]').textContent())!);
   await expect(input(page)).not.toHaveValue('');
+  await expect(errors(page)).toHaveText('0');
+});
+
+
+test('exercice de repérage accessible et conservé au rechargement', async ({ page }) => {
+  await page.goto('/');
+  const selector = page.getByTestId('exercise-selector');
+  await selector.selectOption('focused');
+  const display = page.getByTestId('text-display');
+  await expect(display).toHaveAttribute('data-exercise-length', /^\d{5,}$/);
+  const start = (await display.textContent())!.trim().split(/\s+/)[0];
+  expect((await display.textContent())!).not.toMatch(/[a-zA-Z0-9]/);
+  await page.reload();
+  await expect(selector).toHaveValue('focused');
+  const next = (await display.textContent())!.trim().split(/\s+/)[0];
+  expect(next).not.toBe(start);
+  await page.getByTestId('keyboard-help-selector').selectOption('hidden');
+  await page.keyboard.insertText(next);
+  await expect(display).toHaveAttribute('data-cursor-position', '1');
   await expect(errors(page)).toHaveText('0');
 });

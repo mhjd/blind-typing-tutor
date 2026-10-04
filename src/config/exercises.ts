@@ -6,6 +6,9 @@ export interface Exercise {
   category: string;
 }
 
+/** Approved characters for focused recognition practice; spaces separate targets. */
+export const focusedCharacters = `é è à ù ç â ê î ô û ë @ . , ' " ( ) - _ ! ? : / + =`.split(' ');
+
 /** Editable, local exercise library. No server or database. */
 export const exercises: Exercise[] = [
   {
@@ -52,5 +55,12 @@ Avant de partir, il note la date du voyage : le 12/10/2026. Il écrit ensuite à
 Pour pratiquer toutes les lettres du clavier, il recopie cette phrase : Portez ce vieux whisky au juge blond qui fume. Il sourit, ferme son cahier et rejoint sa famille. L'important est de trouver les bonnes touches, à son rythme, puis de recommencer tranquillement.
 
 Dans son carnet, Paul écrit "liste_voyage" en haut de la page. Il fait un petit calcul : 2 + 3 = 5. Les documents sont dans le dossier famille/voyage, avec les billets et l'adresse jean_pierre@exemple.fr. Il ajoute celle de lea@exemple.fr (sa voisine), puis relit les deux adresses. Pour chaque @, il cherche calmement la touche à et maintient AltGr. Tout est prêt pour le départ !`,
+  },
+  {
+    id: 'focused',
+    title: 'Repérer les accents et caractères spéciaux',
+    category: 'Repérage',
+    description: 'Uniquement des caractères à retrouver, sans mots ni phrases. Travaillez les accents, le ë de Noël et les signes courants, avec davantage de @.',
+    text: focusedCharacters.join(' '),
   },
 ];
