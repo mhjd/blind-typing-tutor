@@ -1,13 +1,40 @@
-# Handoff applicatif à l’administrateur
+# Transfert de responsabilité à l’agent VPS et handoff de publication
 
 Ce document décrit le produit à lancer. Aucune opération VPS, modification Docker, DNS, TLS, utilisateur Unix, permissions système ou reverse proxy n’a été réalisée par l’agent de code.
+
+## Responsabilité à compter du 4 octobre 2026
+
+À la demande du propriétaire, **l’agent présent sur le VPS prend désormais la responsabilité du projet et de sa mise en ligne**, en coordination avec l’administrateur VPS. La mission du premier agent de code est terminée : le produit est prêt à être déployé, mais aucune publication sur le VPS n’a été effectuée. Ce document constitue le transfert dans le dépôt ; il ne confirme pas une prise en charge ni une intervention effective de l’agent distant.
+
+L’agent VPS pilote la reprise, les vérifications applicatives sur Linux, la coordination du déploiement et la recette du site publié. Il s’organise avec l’administrateur avant toute modification d’infrastructure. L’administrateur décide de la méthode de lancement, du compte Unix, des permissions, de l’emplacement, du binding, du reverse proxy, du domaine, de HTTPS, du firewall, des logs et du redémarrage automatique. Aucune architecture ni configuration Docker n’est imposée par ce handoff.
+
+Les informations propres au VPS et ses credentials restent hors du dépôt. Si une correction applicative est nécessaire, l’agent VPS la traite sur une branche dédiée ou la transmet à un agent de code, avec une reproduction précise. Ne pas fusionner automatiquement l’upstream : tout nouveau code doit être examiné.
+
+## Reprise et coordination attendues
+
+1. Lire ce document et [VALIDATION.md](VALIDATION.md), puis récupérer la branche indiquée ci-dessous. Noter le hash exact du checkout retenu. La tête contenant ce transfert ne change que la documentation par rapport à la version produit déjà validée.
+2. Examiner l’environnement existant avec l’administrateur : mode de lancement disponible, domaine souhaité, accès public ou privé, port interne, reverse proxy et responsabilités respectives. Ne pas remplacer une configuration existante sans cet accord.
+3. Installer et construire pour Linux avec Node et Yarn indiqués ci-dessous. Refaire lint/build et un audit de dépendances : l’audit précédent est daté du 3 octobre 2026. Si une vulnérabilité applicable apparaît, la traiter sans mise à jour aveugle ni `--force`.
+4. Vérifier le build de production avant publication. Dans un environnement de test adapté, installer les navigateurs avec `yarn playwright install chromium firefox`, puis lancer `CI=1 PLAYWRIGHT_PRODUCTION=1 yarn test:e2e --project=chromium --project=firefox` (port 3000 disponible, aucun autre serveur de test). Les dépendances système des navigateurs relèvent de l’environnement choisi avec l’administrateur.
+5. Faire mettre en place le lancement et l’exposition du service selon les décisions de l’administrateur. Consigner le commit déployé, les commandes réellement utilisées et la procédure de retour à la version précédente, sans secret.
+6. Effectuer la recette ci-dessous sur l’URL finale, vérifier les logs et le redémarrage avec l’administrateur, puis informer le propriétaire de l’URL, du commit publié et des éventuelles limites. La mise en ligne reste à faire tant que ces vérifications ne sont pas terminées.
+
+## Produit livré et recette de publication
+
+L’interface par défaut est française AZERTY, avec clavier visible et aide Guidé. Quatre exercices sont disponibles : accents en mots/phrases, signes courants avec adresses e-mail, long texte varié, et repérage ciblé uniquement composé d’accents et de signes. Les grands tours sont générés localement, changent de départ et se renouvellent sans menu. Le texte libre reste disponible.
+
+Conserver les choix métier : `é è à ù ç â ê î ô û ë`, le ë de Noël, les signes `@ . , ' " ( ) - _ ! ? : / + =`, et beaucoup de @. Les exercices excluent ä/ï/ö/ü, €/% et le point-virgule, ainsi que les signes rares précédemment écartés ; leur saisie reste prise en charge dans les textes libres lorsque la disposition la permet. L’objectif est le repérage physique des touches, avec une navigation simple, sans compte ni priorité à la vitesse.
+
+Sur le site publié, vérifier : ouverture de `/`, sélection des quatre exercices, passage Guidé → Confirmation → Erreurs seulement → Sans aide, absence de cible avant tentative dans les trois derniers modes, confirmation après réussite en Confirmation et révélation après erreur selon le mode. Essayer un vrai clavier AZERTY : `î` par touche morte puis `i`, `ë`, `@` par AltGr, ponctuation avec Shift, correction sans double comptage. Vérifier renouvellement, texte libre, statistiques, thème et conservation des préférences au rechargement. Dans les outils réseau du navigateur, confirmer l’absence de trafic tiers, de Google Analytics/Fonts et d’envoi du texte. Vérifier le statut HTTP et les headers sur l’origine publique.
+
+Validation locale acquise le 4 octobre : lint et build/TypeScript réussis, **206 tests réussis dans Chromium et Firefox**. La gestion des touches mortes physiques sous l’OS cible reste à essayer : les tests automatisés simulent les événements correspondants.
 
 ## Source et version
 
 - Dépôt : https://github.com/mhjd/blind-typing-tutor
 - Branche : `feature/french-azerty-trainer`.
 - Baseline examinée : `de164448e147c8926cd1e3ec44482793807d2364`.
-- Révision applicative validée : `9e35f8e96a815b8e7900f90abf4dcab5d598bb2e`. Le commit de documentation qui suit sur cette branche contient ce handoff ; le hash complet de tête à déployer est communiqué dans le compte rendu final.
+- Révision applicative validée : `9e35f8e96a815b8e7900f90abf4dcab5d598bb2e`. Checkout produit et documentation précédant ce transfert : `88b462f555c680e7cc690cf4a4adcd7a5c1d686d`. Utiliser la tête de `feature/french-azerty-trainer` contenant ce transfert et consigner son hash avec `git rev-parse HEAD` ; les commits suivants du présent transfert ne modifient pas le code applicatif.
 - Next.js 15.5.27, React 19.3.0. Aucune fusion de code upstream après baseline.
 
 ## Construction et lancement

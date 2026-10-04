@@ -63,7 +63,7 @@ Next.js 15 App Router, React 19, TypeScript et Tailwind 4. Aucun backend métier
 
 Le SEO public upstream, ses évaluations artificielles, son sitemap, ses URL canoniques, l’écran promotionnel et les liens WordMemo/Buy Me a Coffee ont été retirés. Les pages portent `noindex` et `robots.txt` interdit l’exploration. Ce n’est pas un contrôle d’accès : la protection d’une instance privée relève de son administrateur.
 
-Voir le [handoff administrateur](docs/DEPLOYMENT_HANDOFF.md) et le [rapport de validation](docs/VALIDATION.md). Ce dépôt ne déploie pas automatiquement cette variante.
+Depuis le 4 octobre 2026, la responsabilité du projet est transférée à l’agent sur le VPS, qui doit organiser sa publication avec l’administrateur. Voir le [transfert et handoff de publication](docs/DEPLOYMENT_HANDOFF.md) et le [rapport de validation](docs/VALIDATION.md). Ce dépôt ne déploie pas automatiquement cette variante.
 
 ## Licence et attribution
 

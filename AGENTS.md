@@ -1,5 +1,9 @@
 # AI Agent Instructions for Blind Typing Tutor
 
+## Ownership handoff (4 October 2026)
+
+The user has transferred project responsibility to the agent on the VPS. That agent must coordinate with the VPS administrator to publish the site and operate it within the administrator's agreed infrastructure scope. Read `docs/DEPLOYMENT_HANDOFF.md` first for the validated revision, application requirements, responsibilities and acceptance checks. No VPS deployment has been performed by the original coding agent. Keep credentials and private VPS details out of this repository.
+
 ## Project Overview
 
 Touch typing tutor built with **Next.js 15 (App Router)**, **React 19**, **TypeScript**, **Tailwind CSS v4**. Supports 29 interface languages, 28+ keyboard layouts, and 29 learning languages.
